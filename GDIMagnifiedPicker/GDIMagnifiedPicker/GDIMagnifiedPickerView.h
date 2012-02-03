@@ -17,6 +17,7 @@
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDelegate> *delegate;
 @property (strong,nonatomic,readonly) UIView *magnificationView;
 @property (nonatomic) CGFloat friction;
+@property (nonatomic) NSUInteger currentIndex;
 
 - (NSArray *)visibleRows;
 

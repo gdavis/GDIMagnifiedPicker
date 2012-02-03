@@ -44,7 +44,7 @@
 - (void)removeTopRow;
 - (void)removeBottomRow;
 
-- (void)scrollToNearestRow;
+- (void)scrollToNearestRowWithAnimation:(BOOL)animate;
 - (void)beginScrollingToNearestRow;
 - (void)endScrollingToNearestRow;
 
@@ -63,6 +63,7 @@
 @synthesize delegate = _delegate;
 @synthesize magnificationView = _magnificationView;
 @synthesize friction = _friction;
+@synthesize currentIndex = _currentIndex;
 
 @synthesize currentCells = _currentCells;
 @synthesize contentView = _contentView;
@@ -108,6 +109,7 @@
     _dataSource = dataSource;
     if (_dataSource != nil) {
         [self build];
+        [self scrollToNearestRowWithAnimation:NO];
     }
 }
 
@@ -334,9 +336,9 @@
 {
     _velocity *= _friction;
     
-    if ( fabsf(_velocity) < .001f) {
+    if ( fabsf(_velocity) < .1f) {
         [self endDeceleration];
-//        [self scrollToNearestRow];
+        [self scrollToNearestRowWithAnimation:YES];
     }
     else {
         [self scrollContentByValue:_velocity];
@@ -346,10 +348,10 @@
 #pragma mark - Nearest Row Scroll Methods
 
 
-- (void)scrollToNearestRow
+- (void)scrollToNearestRowWithAnimation:(BOOL)animate
 {
     // find the row nearest to the center
-    CGFloat indexOfNearestRow;
+    NSUInteger indexOfNearestRow;
     CGFloat closestDistance = FLT_MAX;
     CGFloat centerY = self.bounds.size.height * .5;
     
@@ -358,26 +360,69 @@
         UIView *currentRowCell = [_currentCells objectAtIndex:i];
         
         CGFloat cellCenter = currentRowCell.frame.origin.y + currentRowCell.frame.size.height * .5;
-        CGFloat distance = (cellCenter - _currentOffset) - centerY;
+        CGFloat distance = cellCenter - centerY;
         
         if (fabsf(distance) < fabsf(closestDistance)) {
             closestDistance = distance;
             indexOfNearestRow = i;
+            _targetYOffset = _currentOffset - closestDistance;
         }
     }
     
+    // determine the current index of the selected slice
+    _currentIndex = _indexOfFirstRow + indexOfNearestRow;
+    
+    if (_currentIndex > _numberOfRows-1) {
+        _currentIndex = fmodf(_currentIndex, _numberOfRows);
+    }
+    
+    if ([_delegate respondsToSelector:@selector(magnifiedPickerView:didSelectRowAtIndex:)]) {
+        [_delegate magnifiedPickerView:self didSelectRowAtIndex:_currentIndex];
+    }
+    
+    if (animate) {
+        [self beginScrollingToNearestRow];
+    }
+    else {
+        [self scrollContentByValue:_targetYOffset - _currentOffset];
+    }
 }
 
 
 - (void)beginScrollingToNearestRow
 {
-    
+    [_moveToNearestRowTimer invalidate];
+    _moveToNearestRowTimer = [NSTimer scheduledTimerWithTimeInterval:kAnimationInterval target:self selector:@selector(handleMoveToNearestRowTick) userInfo:nil repeats:YES];
 }
 
 
 - (void)endScrollingToNearestRow
 {
+    [_moveToNearestRowTimer invalidate];
+    _moveToNearestRowTimer = nil;
+}
+
+
+- (void)handleMoveToNearestRowTick
+{
+    CGFloat delta1 = (_targetYOffset - _currentOffset);
+    CGFloat delta2 = (_targetYOffset - _currentOffset) + self.bounds.size.height;
+    CGFloat delta;
     
+    if (fabsf(delta1) < fabsf(delta2)) {
+        delta = delta1 * (1 - _friction);
+    }
+    else {
+        delta = delta2 * (1 - _friction);
+    }
+    
+    if (fabsf(delta) < .01) {
+        [self scrollContentByValue:_targetYOffset - _currentOffset];
+        [self endScrollingToNearestRow];
+    }
+    else {
+        [self scrollContentByValue:delta];
+    }
 }
 
 
@@ -389,6 +434,7 @@
     // reset the last point to where we start from.
     _lastTouchPoint = point;
     
+    [self endDeceleration];
     [self endScrollingToNearestRow];
     [self trackTouchPoint:point inView:gv];
 }
