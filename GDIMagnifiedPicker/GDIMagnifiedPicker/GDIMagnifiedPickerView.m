@@ -12,16 +12,25 @@
 @interface GDIMagnifiedPickerView()
 
 @property (strong,nonatomic) NSMutableArray *currentCells;
+@property (strong,nonatomic) UIView *contentView;
 @property (nonatomic) CGFloat contentHeight;
 @property (nonatomic) NSInteger indexOfFirstRow;
 @property (nonatomic) NSInteger indexOfLastRow;
-@property (nonatomic) NSUInteger totalRows;
+@property (nonatomic) NSUInteger numberOfRows;
+@property (nonatomic) CGFloat currentOffset;
 @property (nonatomic) CGFloat targetYOffset;
+@property (strong,nonatomic) GDITouchProxyView *touchProxyView;
+@property (nonatomic) CGPoint lastTouchPoint;
+@property (nonatomic) CGFloat velocity;
+@property(strong,nonatomic) NSTimer *decelerationTimer;
+@property(strong,nonatomic) NSTimer *moveToNearestRowTimer;
 
+- (void)setDefaults;
 - (void)initContentHeight;
 
 - (void)build;
-- (void)buildScrollView;
+- (void)buildContentView;
+- (void)buildTouchProxyView;
 - (void)buildVisibleRows;
 - (void)buildMagnificationView;
 
@@ -37,21 +46,51 @@
 - (void)beginScrollingToNearestRow;
 - (void)endScrollingToNearestRow;
 
+- (void)beginDeceleration;
+- (void)endDeceleration;
+
+- (void)scrollContentByValue:(CGFloat)value;
+- (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view;
+
 @end
 
 
 @implementation GDIMagnifiedPickerView
 @synthesize dataSource = _dataSource;
 @synthesize delegate = _delegate;
-@synthesize scrollView = _scrollView;
 @synthesize magnificationView = _magnificationView;
+@synthesize friction = _friction;
 
 @synthesize currentCells = _currentCells;
+@synthesize contentView = _contentView;
 @synthesize contentHeight = _contentHeight;
 @synthesize indexOfFirstRow = _indexOfFirstRow;
 @synthesize indexOfLastRow = _indexOfLastRow;
-@synthesize totalRows = _totalRows;
+@synthesize numberOfRows = _numberOfRows;
+@synthesize currentOffset = _currentOffset;
 @synthesize targetYOffset = _targetYOffset;
+@synthesize touchProxyView = _touchProxyView;
+@synthesize lastTouchPoint = _lastTouchPoint;
+@synthesize velocity = _velocity;
+@synthesize decelerationTimer = _decelerationTimer;
+@synthesize moveToNearestRowTimer = _moveToNearestRowTimer;
+
+
+- (id)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self setDefaults];
+    }
+    return self;
+}
+
+
+- (void)awakeFromNib
+{
+    [super awakeFromNib];
+    [self setDefaults];
+}
 
 
 - (NSArray *)visibleRows
@@ -70,11 +109,17 @@
 
 #pragma mark - Private Methods
 
+- (void)setDefaults
+{
+    _friction = .95f;
+    _currentOffset = 0;
+}
+
 - (void)initContentHeight
 {
     _contentHeight = 0;
-    _totalRows = [_dataSource numberOfRowsInMagnifiedPickerView:self];
-    for (int i=0; i<_totalRows; i++) {
+    _numberOfRows = [_dataSource numberOfRowsInMagnifiedPickerView:self];
+    for (int i=0; i<_numberOfRows; i++) {
         _contentHeight += [_dataSource magnifiedPickerView:self heightForRowAtIndex:i];
     }
 }
@@ -85,20 +130,26 @@
 - (void)build
 {
     [self initContentHeight];
-    [self buildScrollView];
+    [self buildContentView];
+    [self buildTouchProxyView];
     [self buildVisibleRows];
     [self buildMagnificationView];
 }
 
-- (void)buildScrollView 
+- (void)buildContentView 
 {
-    _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
-    _scrollView.delegate = self;
-    _scrollView.contentSize = CGSizeMake(self.bounds.size.width, _contentHeight);
-    _scrollView.clipsToBounds = NO;
-    _scrollView.showsVerticalScrollIndicator = NO;
-    [self addSubview:_scrollView];
+    _contentView = [[UIView alloc] initWithFrame:self.bounds];
+    [self addSubview:_contentView];
 }
+
+
+- (void)buildTouchProxyView
+{
+    _touchProxyView = [[GDITouchProxyView alloc] initWithFrame:self.bounds];
+    _touchProxyView.delegate = self;
+    [self addSubview:_touchProxyView];
+}
+
 
 - (void)buildVisibleRows
 {
@@ -107,13 +158,12 @@
     
     CGFloat currentHeight = 0.f;
     
-    for (int i=0; i<_totalRows; i++) {
+    for (int i=0; i<_numberOfRows; i++) {
         
         UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:i];
         cellView.frame = CGRectMake(0, currentHeight, self.frame.size.width, [_dataSource magnifiedPickerView:self heightForRowAtIndex:i]);
         
-        
-        [_scrollView addSubview:cellView];
+        [_contentView addSubview:cellView];
         [_currentCells addObject:cellView];
         
         currentHeight += cellView.frame.size.height;
@@ -143,25 +193,21 @@
 - (void)updateVisibleRows
 {
     UIView *firstRowView = [_currentCells objectAtIndex:0];    
-    if (firstRowView.frame.origin.y + firstRowView.frame.size.height < _scrollView.contentOffset.y) {
-//        NSLog(@"remove top row");
+    if (firstRowView.frame.origin.y + firstRowView.frame.size.height < 0) {
         [self removeTopRow];
         [self updateVisibleRows];
     }
-    else if (firstRowView.frame.origin.y - _scrollView.contentOffset.y >= 0 && _indexOfFirstRow > 0) {
-//        NSLog(@"add top row");
+    else if (firstRowView.frame.origin.y > 0) {
         [self addTopRow];
         [self updateVisibleRows];
     }
     
     UIView *lastRowView = [_currentCells lastObject];
-    if (lastRowView.frame.origin.y + lastRowView.frame.size.height - _scrollView.contentOffset.y < self.bounds.size.height && _indexOfLastRow+1 < _totalRows) {
-//        NSLog(@"add bottom row");
+    if (lastRowView.frame.origin.y + lastRowView.frame.size.height < self.bounds.size.height) {
         [self addBottomRow];
         [self updateVisibleRows];
     }
-    else if (lastRowView.frame.origin.y - _scrollView.contentOffset.y > self.bounds.size.height && _indexOfLastRow-1 >= 0) {
-//        NSLog(@"remove bottom row");
+    else if (lastRowView.frame.origin.y > self.bounds.size.height) {
         [self removeBottomRow];
         [self updateVisibleRows];
     }
@@ -172,14 +218,18 @@
 {
     _indexOfFirstRow--;
     
+    if (_indexOfFirstRow < 0) {
+        _indexOfFirstRow = _numberOfRows-1;
+    }
+    
     UIView *curFirstRowView = [_currentCells objectAtIndex:0];
     CGFloat cellRowHeight = [_dataSource magnifiedPickerView:self heightForRowAtIndex:_indexOfFirstRow];
-    CGFloat currentHeight = curFirstRowView.frame.origin.y - cellRowHeight;
+    CGFloat currentY = curFirstRowView.frame.origin.y - cellRowHeight;
     
     UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfFirstRow];
-    cellView.frame = CGRectMake(0, currentHeight, self.frame.size.width, cellRowHeight);
+    cellView.frame = CGRectMake(0, currentY, self.frame.size.width, cellRowHeight);
     
-    [_scrollView addSubview:cellView];
+    [_contentView addSubview:cellView];
     [_currentCells insertObject:cellView atIndex:0];
 }
 
@@ -188,6 +238,10 @@
 {
     _indexOfLastRow++;
     
+    if (_indexOfLastRow >= _numberOfRows) {
+        _indexOfLastRow = 0;
+    }
+    
     UIView *curLastRowView = [_currentCells lastObject];
     CGFloat cellRowHeight = [_dataSource magnifiedPickerView:self heightForRowAtIndex:_indexOfLastRow];
     CGFloat currentHeight = curLastRowView.frame.origin.y + curLastRowView.frame.size.height;
@@ -195,7 +249,7 @@
     UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfLastRow];
     cellView.frame = CGRectMake(0, currentHeight, self.frame.size.width, cellRowHeight);
     
-    [_scrollView addSubview:cellView];
+    [_contentView addSubview:cellView];
     [_currentCells addObject:cellView];
 }
 
@@ -219,6 +273,46 @@
     _indexOfLastRow--;
 }
 
+#pragma mark - Touch Tracking
+
+
+- (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view
+{
+    CGFloat deltaY = point.y - _lastTouchPoint.y;
+    
+    [self scrollContentByValue:deltaY];
+    
+    _velocity = deltaY;
+    _lastTouchPoint = point;
+}
+
+#pragma mark - Scrolling
+
+- (void)scrollContentByValue:(CGFloat)value
+{
+    _currentOffset += value;
+    NSLog(@"currentOffset: %.2f", _currentOffset);
+    
+    for (UIView *rowView in _currentCells) {
+        rowView.frame = CGRectMake(rowView.frame.origin.x, rowView.frame.origin.y + value, rowView.frame.size.width, rowView.frame.size.height);
+    }
+    
+    [self updateVisibleRows];
+}
+
+
+#pragma mark - Decelerate Methods
+
+- (void)beginDeceleration
+{
+    
+}
+
+- (void)endDeceleration
+{
+    
+}
+
 #pragma mark - Nearest Row Scroll Methods
 
 
@@ -234,7 +328,7 @@
         UIView *currentRowCell = [_currentCells objectAtIndex:i];
         
         CGFloat cellCenter = currentRowCell.frame.origin.y + currentRowCell.frame.size.height * .5;
-        CGFloat distance = (cellCenter - _scrollView.contentOffset.y) - centerY;
+        CGFloat distance = (cellCenter - _currentOffset) - centerY;
         
         if (fabsf(distance) < fabsf(closestDistance)) {
             closestDistance = distance;
@@ -257,16 +351,29 @@
 }
 
 
-#pragma mark - UIScrollView Delegate Methods
+#pragma mark - Gesture View Delegate
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    [self updateVisibleRows];
-}
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+- (void)gestureView:(GDITouchProxyView *)gv touchBeganAtPoint:(CGPoint)point
 {
+    // reset the last point to where we start from.
+    _lastTouchPoint = point;
     
+    [self endScrollingToNearestRow];
+    [self trackTouchPoint:point inView:gv];
 }
+
+
+- (void)gestureView:(GDITouchProxyView *)gv touchMovedToPoint:(CGPoint)point
+{
+    [self trackTouchPoint:point inView:gv];
+}
+
+
+- (void)gestureView:(GDITouchProxyView *)gv touchEndedAtPoint:(CGPoint)point
+{
+    [self beginDeceleration];
+}
+
 
 @end

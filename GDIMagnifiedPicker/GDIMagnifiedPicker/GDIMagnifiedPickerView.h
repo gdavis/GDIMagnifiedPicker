@@ -7,15 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "GDITouchProxyView.h"
 
 @protocol GDIMagnifiedPickerViewDataSource, GDIMagnifiedPickerViewDelegate;
 
-@interface GDIMagnifiedPickerView : UIView <UIScrollViewDelegate>
+@interface GDIMagnifiedPickerView : UIView <GDITouchProxyViewDelegate>
 
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDataSource> *dataSource;
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDelegate> *delegate;
-@property (strong,nonatomic,readonly) UIScrollView *scrollView;
 @property (strong,nonatomic,readonly) UIView *magnificationView;
+@property (nonatomic) CGFloat friction;
 
 - (NSArray *)visibleRows;
 
