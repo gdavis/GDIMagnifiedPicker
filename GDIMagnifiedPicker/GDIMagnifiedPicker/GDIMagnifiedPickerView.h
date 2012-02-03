@@ -15,6 +15,7 @@
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDataSource> *dataSource;
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDelegate> *delegate;
 @property (strong,nonatomic,readonly) UIScrollView *scrollView;
+@property (strong,nonatomic,readonly) UIView *magnificationView;
 
 - (NSArray *)visibleRows;
 

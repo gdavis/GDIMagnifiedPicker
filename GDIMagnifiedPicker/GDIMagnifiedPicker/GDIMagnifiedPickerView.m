@@ -7,6 +7,7 @@
 //
 
 #import "GDIMagnifiedPickerView.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface GDIMagnifiedPickerView()
 
@@ -15,11 +16,15 @@
 @property (nonatomic) NSInteger indexOfFirstRow;
 @property (nonatomic) NSInteger indexOfLastRow;
 @property (nonatomic) NSUInteger totalRows;
+@property (nonatomic) CGFloat targetYOffset;
 
 - (void)initContentHeight;
+
 - (void)build;
 - (void)buildScrollView;
 - (void)buildVisibleRows;
+- (void)buildMagnificationView;
+
 - (void)updateVisibleRows;
 
 - (void)addTopRow;
@@ -28,6 +33,10 @@
 - (void)removeTopRow;
 - (void)removeBottomRow;
 
+- (void)scrollToNearestRow;
+- (void)beginScrollingToNearestRow;
+- (void)endScrollingToNearestRow;
+
 @end
 
 
@@ -35,12 +44,14 @@
 @synthesize dataSource = _dataSource;
 @synthesize delegate = _delegate;
 @synthesize scrollView = _scrollView;
+@synthesize magnificationView = _magnificationView;
 
 @synthesize currentCells = _currentCells;
 @synthesize contentHeight = _contentHeight;
 @synthesize indexOfFirstRow = _indexOfFirstRow;
 @synthesize indexOfLastRow = _indexOfLastRow;
 @synthesize totalRows = _totalRows;
+@synthesize targetYOffset = _targetYOffset;
 
 
 - (NSArray *)visibleRows
@@ -69,11 +80,14 @@
 }
 
 
+#pragma mark - Build Methods
+
 - (void)build
 {
     [self initContentHeight];
     [self buildScrollView];
     [self buildVisibleRows];
+    [self buildMagnificationView];
 }
 
 - (void)buildScrollView 
@@ -111,6 +125,20 @@
     }
 }
 
+
+- (void)buildMagnificationView
+{
+    CGFloat magViewHeight = 47.f;
+    _magnificationView = [[UIView alloc] initWithFrame:CGRectMake(0, self.bounds.size.height * .5 - magViewHeight*.5, self.bounds.size.width, magViewHeight)];
+    _magnificationView.userInteractionEnabled = NO;
+    
+    _magnificationView.layer.borderColor = [[UIColor redColor] CGColor];
+    _magnificationView.layer.borderWidth = 1.f;
+    
+    [self addSubview:_magnificationView];
+}
+
+#pragma mark - Row Update Methods
 
 - (void)updateVisibleRows
 {
@@ -191,12 +219,54 @@
     _indexOfLastRow--;
 }
 
+#pragma mark - Nearest Row Scroll Methods
+
+
+- (void)scrollToNearestRow
+{
+    // find the row nearest to the center
+    CGFloat indexOfNearestRow;
+    CGFloat closestDistance = FLT_MAX;
+    CGFloat centerY = self.bounds.size.height * .5;
+    
+    for (int i=0; i<_currentCells.count; i++) {
+        
+        UIView *currentRowCell = [_currentCells objectAtIndex:i];
+        
+        CGFloat cellCenter = currentRowCell.frame.origin.y + currentRowCell.frame.size.height * .5;
+        CGFloat distance = (cellCenter - _scrollView.contentOffset.y) - centerY;
+        
+        if (fabsf(distance) < fabsf(closestDistance)) {
+            closestDistance = distance;
+            indexOfNearestRow = i;
+        }
+    }
+    
+}
+
+
+- (void)beginScrollingToNearestRow
+{
+    
+}
+
+
+- (void)endScrollingToNearestRow
+{
+    
+}
+
 
 #pragma mark - UIScrollView Delegate Methods
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     [self updateVisibleRows];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    
 }
 
 @end
