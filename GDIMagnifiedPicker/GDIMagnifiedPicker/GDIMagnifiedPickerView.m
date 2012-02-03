@@ -9,6 +9,8 @@
 #import "GDIMagnifiedPickerView.h"
 #import <QuartzCore/QuartzCore.h>
 
+#define kAnimationInterval 1.f/60.f
+
 @interface GDIMagnifiedPickerView()
 
 @property (strong,nonatomic) NSMutableArray *currentCells;
@@ -48,6 +50,7 @@
 
 - (void)beginDeceleration;
 - (void)endDeceleration;
+- (void)handleDecelerateTick;
 
 - (void)scrollContentByValue:(CGFloat)value;
 - (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view;
@@ -317,12 +320,27 @@
 
 - (void)beginDeceleration
 {
-    
+    [_decelerationTimer invalidate];
+    _decelerationTimer = [NSTimer scheduledTimerWithTimeInterval:kAnimationInterval target:self selector:@selector(handleDecelerateTick) userInfo:nil repeats:YES];
 }
 
 - (void)endDeceleration
 {
+    [_decelerationTimer invalidate];
+    _decelerationTimer = nil;
+}
+
+- (void)handleDecelerateTick
+{
+    _velocity *= _friction;
     
+    if ( fabsf(_velocity) < .001f) {
+        [self endDeceleration];
+//        [self scrollToNearestRow];
+    }
+    else {
+        [self scrollContentByValue:_velocity];
+    }
 }
 
 #pragma mark - Nearest Row Scroll Methods
