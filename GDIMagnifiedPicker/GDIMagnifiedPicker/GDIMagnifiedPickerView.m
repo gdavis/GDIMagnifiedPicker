@@ -139,6 +139,7 @@
 - (void)buildContentView 
 {
     _contentView = [[UIView alloc] initWithFrame:self.bounds];
+    _contentView.clipsToBounds = YES;
     [self addSubview:_contentView];
 }
 
@@ -168,9 +169,15 @@
         
         currentHeight += cellView.frame.size.height;
         
+        // stop making rows when we have filled the view
         if (currentHeight >= self.frame.size.height) {
             _indexOfLastRow = i;
             break;
+        }
+        
+        // start repeating rows if we don't have enough to fill the view
+        if (i == _numberOfRows-1) {
+            i = -1;
         }
     }
 }
@@ -217,7 +224,6 @@
 - (void)addTopRow
 {
     _indexOfFirstRow--;
-    
     if (_indexOfFirstRow < 0) {
         _indexOfFirstRow = _numberOfRows-1;
     }
@@ -237,7 +243,6 @@
 - (void)addBottomRow
 {
     _indexOfLastRow++;
-    
     if (_indexOfLastRow >= _numberOfRows) {
         _indexOfLastRow = 0;
     }
@@ -261,6 +266,9 @@
     [_currentCells removeObject:firstRowView];
     
     _indexOfFirstRow++;
+    if (_indexOfFirstRow > _numberOfRows-1) {
+        _indexOfFirstRow = 0;
+    }
 }
 
 
@@ -271,6 +279,9 @@
     [_currentCells removeObject:lastRowView];
     
     _indexOfLastRow--;
+    if (_indexOfLastRow < 0) {
+        _indexOfLastRow = _numberOfRows-1;
+    }
 }
 
 #pragma mark - Touch Tracking
@@ -291,7 +302,6 @@
 - (void)scrollContentByValue:(CGFloat)value
 {
     _currentOffset += value;
-    NSLog(@"currentOffset: %.2f", _currentOffset);
     
     for (UIView *rowView in _currentCells) {
         rowView.frame = CGRectMake(rowView.frame.origin.x, rowView.frame.origin.y + value, rowView.frame.size.width, rowView.frame.size.height);

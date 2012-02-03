@@ -66,7 +66,7 @@
 
 - (NSUInteger)numberOfRowsInMagnifiedPickerView:(GDIMagnifiedPickerView*)pickerView
 {
-    return 10;
+    return 6;
 }
 
 - (CGFloat)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView heightForRowAtIndex:(NSUInteger)rowIndex
@@ -78,6 +78,14 @@
 {
     UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, 32.f)];
     rowView.backgroundColor = [UIColor randomColorWithAlpha:.5f];
+    rowView.opaque = NO;
+    
+    UILabel *label = [[UILabel alloc] initWithFrame:rowView.bounds];
+    label.backgroundColor = [UIColor clearColor];
+    label.opaque = NO;
+    label.text = [NSString stringWithFormat:@"Row %i", rowIndex];
+    [rowView addSubview:label];
+    
     return rowView;
 }
 
