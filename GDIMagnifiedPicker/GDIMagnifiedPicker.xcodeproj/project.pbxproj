@@ -17,6 +17,7 @@
 		77501AB714DC42840011923F /* GDIViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 77501AB514DC42840011923F /* GDIViewController.xib */; };
 		77501AC014DC47BD0011923F /* GDIMagnifiedPickerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */; };
 		77501AC314DC520B0011923F /* UIColor+GDIAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */; };
+		77501ACB14DC69350011923F /* GDITouchProxyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501ACA14DC69350011923F /* GDITouchProxyView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,8 @@
 		77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDIMagnifiedPickerView.m; sourceTree = "<group>"; };
 		77501AC114DC520B0011923F /* UIColor+GDIAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+GDIAdditions.h"; sourceTree = "<group>"; };
 		77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+GDIAdditions.m"; sourceTree = "<group>"; };
+		77501AC914DC69350011923F /* GDITouchProxyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDITouchProxyView.h; sourceTree = "<group>"; };
+		77501ACA14DC69350011923F /* GDITouchProxyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDITouchProxyView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +115,8 @@
 			children = (
 				77501ABE14DC47BD0011923F /* GDIMagnifiedPickerView.h */,
 				77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */,
+				77501AC914DC69350011923F /* GDITouchProxyView.h */,
+				77501ACA14DC69350011923F /* GDITouchProxyView.m */,
 			);
 			name = "Magnified Picker";
 			sourceTree = "<group>";
@@ -183,6 +188,7 @@
 				77501AB414DC42840011923F /* GDIViewController.m in Sources */,
 				77501AC014DC47BD0011923F /* GDIMagnifiedPickerView.m in Sources */,
 				77501AC314DC520B0011923F /* UIColor+GDIAdditions.m in Sources */,
+				77501ACB14DC69350011923F /* GDITouchProxyView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
