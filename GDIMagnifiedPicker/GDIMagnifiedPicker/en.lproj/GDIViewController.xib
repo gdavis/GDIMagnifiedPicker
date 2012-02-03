@@ -34,10 +34,10 @@
 				<reference key="NSNextResponder"/>
 				<int key="NSvFlags">274</int>
 				<array class="NSMutableArray" key="NSSubviews">
-					<object class="IBUIView" id="56062683">
+					<object class="IBUIView" id="299177622">
 						<reference key="NSNextResponder" ref="774585933"/>
 						<int key="NSvFlags">274</int>
-						<string key="NSFrame">{{0, 137}, {320, 185}}</string>
+						<string key="NSFrame">{{0, 93}, {320, 185}}</string>
 						<reference key="NSSuperview" ref="774585933"/>
 						<reference key="NSWindow"/>
 						<reference key="NSNextKeyView"/>
@@ -45,7 +45,7 @@
 						<object class="NSColor" key="IBUIBackgroundColor">
 							<int key="NSColorSpace">3</int>
 							<bytes key="NSWhite">MQA</bytes>
-							<object class="NSColorSpace" key="NSCustomColorSpace" id="445484140">
+							<object class="NSColorSpace" key="NSCustomColorSpace" id="932112522">
 								<int key="NSID">2</int>
 							</object>
 						</object>
@@ -55,11 +55,11 @@
 				<string key="NSFrame">{{0, 20}, {320, 460}}</string>
 				<reference key="NSSuperview"/>
 				<reference key="NSWindow"/>
-				<reference key="NSNextKeyView" ref="56062683"/>
+				<reference key="NSNextKeyView"/>
 				<object class="NSColor" key="IBUIBackgroundColor">
 					<int key="NSColorSpace">3</int>
 					<bytes key="NSWhite">MC43NQA</bytes>
-					<reference key="NSCustomColorSpace" ref="445484140"/>
+					<reference key="NSCustomColorSpace" ref="932112522"/>
 				</object>
 				<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
 				<object class="IBUISimulatedStatusBarMetrics" key="IBUISimulatedStatusBarMetrics"/>
@@ -80,7 +80,7 @@
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">magnifiedPickerView</string>
 						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="56062683"/>
+						<reference key="destination" ref="299177622"/>
 					</object>
 					<int key="connectionID">9</int>
 				</object>
@@ -108,13 +108,13 @@
 						<int key="objectID">6</int>
 						<reference key="object" ref="774585933"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="56062683"/>
+							<reference ref="299177622"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">8</int>
-						<reference key="object" ref="56062683"/>
+						<reference key="object" ref="299177622"/>
 						<reference key="parent" ref="774585933"/>
 					</object>
 				</array>
@@ -132,7 +132,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">9</int>
+			<int key="maxID">10</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">

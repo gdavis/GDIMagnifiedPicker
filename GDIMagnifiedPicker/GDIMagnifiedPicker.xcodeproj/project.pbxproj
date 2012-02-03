@@ -16,6 +16,7 @@
 		77501AB414DC42840011923F /* GDIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501AB314DC42840011923F /* GDIViewController.m */; };
 		77501AB714DC42840011923F /* GDIViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 77501AB514DC42840011923F /* GDIViewController.xib */; };
 		77501AC014DC47BD0011923F /* GDIMagnifiedPickerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */; };
+		77501AC314DC520B0011923F /* UIColor+GDIAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,8 @@
 		77501AB614DC42840011923F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/GDIViewController.xib; sourceTree = "<group>"; };
 		77501ABE14DC47BD0011923F /* GDIMagnifiedPickerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDIMagnifiedPickerView.h; sourceTree = "<group>"; };
 		77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDIMagnifiedPickerView.m; sourceTree = "<group>"; };
+		77501AC114DC520B0011923F /* UIColor+GDIAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+GDIAdditions.h"; sourceTree = "<group>"; };
+		77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+GDIAdditions.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +90,8 @@
 				77501AB314DC42840011923F /* GDIViewController.m */,
 				77501AB514DC42840011923F /* GDIViewController.xib */,
 				77501AA714DC42840011923F /* Supporting Files */,
+				77501AC114DC520B0011923F /* UIColor+GDIAdditions.h */,
+				77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */,
 			);
 			path = GDIMagnifiedPicker;
 			sourceTree = "<group>";
@@ -177,6 +182,7 @@
 				77501AB114DC42840011923F /* GDIAppDelegate.m in Sources */,
 				77501AB414DC42840011923F /* GDIViewController.m in Sources */,
 				77501AC014DC47BD0011923F /* GDIMagnifiedPickerView.m in Sources */,
+				77501AC314DC520B0011923F /* UIColor+GDIAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

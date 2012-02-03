@@ -7,6 +7,7 @@
 //
 
 #import "GDIViewController.h"
+#import "UIColor+GDIAdditions.h"
 
 @implementation GDIViewController
 @synthesize magnifiedPickerView;
@@ -22,17 +23,15 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
     
-    
+    self.magnifiedPickerView.dataSource = self;
+    self.magnifiedPickerView.delegate = self;
 }
 
 - (void)viewDidUnload
 {
     [self setMagnifiedPickerView:nil];
     [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -64,14 +63,22 @@
 
 #pragma mark - GDIMagnifiedPickerView Data Source
 
-- (NSUInteger)numberOfRowsInPickerView:(GDIMagnifiedPickerView*)pickerView
+
+- (NSUInteger)numberOfRowsInMagnifiedPickerView:(GDIMagnifiedPickerView*)pickerView
 {
     return 10;
 }
 
+- (CGFloat)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView heightForRowAtIndex:(NSUInteger)rowIndex
+{
+    return 32.f;
+}
+
 - (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView viewForRowAtIndex:(NSUInteger)rowIndex
 {
-    return [[UIView alloc] initWithFrame:CGRectZero];
+    UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, 32.f)];
+    rowView.backgroundColor = [UIColor randomColorWithAlpha:.5f];
+    return rowView;
 }
 
 

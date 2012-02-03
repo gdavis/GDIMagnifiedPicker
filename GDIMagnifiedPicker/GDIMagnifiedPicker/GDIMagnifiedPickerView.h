@@ -10,10 +10,11 @@
 
 @protocol GDIMagnifiedPickerViewDataSource, GDIMagnifiedPickerViewDelegate;
 
-@interface GDIMagnifiedPickerView : UIView
+@interface GDIMagnifiedPickerView : UIView <UIScrollViewDelegate>
 
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDataSource> *dataSource;
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDelegate> *delegate;
+@property (strong,nonatomic,readonly) UIScrollView *scrollView;
 
 - (NSArray *)visibleRows;
 
@@ -23,7 +24,8 @@
 @protocol GDIMagnifiedPickerViewDataSource
 
 @required
-- (NSUInteger)numberOfRowsInPickerView:(GDIMagnifiedPickerView*)pickerView;
+- (NSUInteger)numberOfRowsInMagnifiedPickerView:(GDIMagnifiedPickerView*)pickerView;
+- (CGFloat)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView heightForRowAtIndex:(NSUInteger)rowIndex;
 - (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView viewForRowAtIndex:(NSUInteger)rowIndex;
 
 @end
