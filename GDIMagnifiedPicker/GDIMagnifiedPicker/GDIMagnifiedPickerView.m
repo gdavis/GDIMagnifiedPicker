@@ -76,6 +76,8 @@
 @synthesize moveToNearestRowTimer = _moveToNearestRowTimer;
 
 
+#pragma mark - Instance Methods
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -107,7 +109,7 @@
 }
 
 
-#pragma mark - Private Methods
+#pragma mark - Initialization Methods
 
 - (void)setDefaults
 {
