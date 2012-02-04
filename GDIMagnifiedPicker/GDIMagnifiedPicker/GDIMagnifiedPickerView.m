@@ -14,8 +14,10 @@
 @interface GDIMagnifiedPickerView()
 
 @property (strong,nonatomic) NSMutableArray *currentCells;
+@property (strong,nonatomic) NSMutableArray *rowPositions;
 @property (strong,nonatomic) UIView *contentView;
-@property (nonatomic) CGFloat contentHeight;
+@property (nonatomic) CGFloat rowHeight;
+@property (nonatomic) CGFloat magnificationViewHeight;
 @property (nonatomic) NSInteger indexOfFirstRow;
 @property (nonatomic) NSInteger indexOfLastRow;
 @property (nonatomic) NSUInteger numberOfRows;
@@ -24,11 +26,10 @@
 @property (strong,nonatomic) GDITouchProxyView *touchProxyView;
 @property (nonatomic) CGPoint lastTouchPoint;
 @property (nonatomic) CGFloat velocity;
-@property(strong,nonatomic) NSTimer *decelerationTimer;
-@property(strong,nonatomic) NSTimer *moveToNearestRowTimer;
+@property (strong,nonatomic) NSTimer *decelerationTimer;
+@property (strong,nonatomic) NSTimer *moveToNearestRowTimer;
 
 - (void)setDefaults;
-- (void)initContentHeight;
 
 - (void)build;
 - (void)buildContentView;
@@ -52,6 +53,8 @@
 - (void)endDeceleration;
 - (void)handleDecelerateTick;
 
+- (NSUInteger)indexOfNearestRow;
+
 - (void)scrollContentByValue:(CGFloat)value;
 - (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view;
 
@@ -64,10 +67,13 @@
 @synthesize magnificationView = _magnificationView;
 @synthesize friction = _friction;
 @synthesize currentIndex = _currentIndex;
+@synthesize magnification = _magnification;
 
 @synthesize currentCells = _currentCells;
+@synthesize rowPositions = _rowPositions;
 @synthesize contentView = _contentView;
-@synthesize contentHeight = _contentHeight;
+@synthesize rowHeight = _rowHeight;
+@synthesize magnificationViewHeight = _magnificationViewHeight;
 @synthesize indexOfFirstRow = _indexOfFirstRow;
 @synthesize indexOfLastRow = _indexOfLastRow;
 @synthesize numberOfRows = _numberOfRows;
@@ -108,6 +114,7 @@
 {
     _dataSource = dataSource;
     if (_dataSource != nil) {
+        
         [self build];
         [self scrollToNearestRowWithAnimation:NO];
     }
@@ -120,15 +127,7 @@
 {
     _friction = .95f;
     _currentOffset = 0;
-}
-
-- (void)initContentHeight
-{
-    _contentHeight = 0;
-    _numberOfRows = [_dataSource numberOfRowsInMagnifiedPickerView:self];
-    for (int i=0; i<_numberOfRows; i++) {
-        _contentHeight += [_dataSource magnifiedPickerView:self heightForRowAtIndex:i];
-    }
+    _magnification = 2.f;
 }
 
 
@@ -136,7 +135,6 @@
 
 - (void)build
 {
-    [self initContentHeight];
     [self buildContentView];
     [self buildTouchProxyView];
     [self buildVisibleRows];
@@ -162,25 +160,27 @@
 - (void)buildVisibleRows
 {
     _currentCells = [NSMutableArray array];
+    _rowPositions = [NSMutableArray array];
+    
     _indexOfFirstRow = 0;
     
+    _numberOfRows = [_dataSource numberOfRowsInMagnifiedPickerView:self];
+    _rowHeight = [_dataSource heightForRowsInMagnifiedPickerView:self];
+    _magnificationViewHeight = [_dataSource heightForMagnificationViewInMagnifiedPickerView:self];
+    
+    NSUInteger numberOfDisplayedCells = floorf(self.bounds.size.height / _rowHeight);    
     CGFloat currentHeight = 0.f;
     
-    for (int i=0; i<_numberOfRows; i++) {
+    for (int i=0; i<numberOfDisplayedCells; i++) {
         
         UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:i];
-        cellView.frame = CGRectMake(0, currentHeight, self.frame.size.width, [_dataSource magnifiedPickerView:self heightForRowAtIndex:i]);
+        cellView.frame = CGRectMake(0, currentHeight, self.frame.size.width, _rowHeight);
         
         [_contentView addSubview:cellView];
         [_currentCells addObject:cellView];
+        [_rowPositions addObject:[NSNumber numberWithFloat:currentHeight]];
         
         currentHeight += cellView.frame.size.height;
-        
-        // stop making rows when we have filled the view
-        if (currentHeight >= self.frame.size.height) {
-            _indexOfLastRow = i;
-            break;
-        }
         
         // start repeating rows if we don't have enough to fill the view
         if (i == _numberOfRows-1) {
@@ -206,22 +206,24 @@
 
 - (void)updateVisibleRows
 {
-    UIView *firstRowView = [_currentCells objectAtIndex:0];    
-    if (firstRowView.frame.origin.y + firstRowView.frame.size.height < 0) {
+    CGFloat firstRowPos = [(NSNumber *)[_rowPositions objectAtIndex:0] floatValue];
+    if (firstRowPos + _rowHeight < 0) {
         [self removeTopRow];
         [self updateVisibleRows];
     }
-    else if (firstRowView.frame.origin.y > 0) {
+    else if (firstRowPos > 0) {
         [self addTopRow];
         [self updateVisibleRows];
     }
     
-    UIView *lastRowView = [_currentCells lastObject];
-    if (lastRowView.frame.origin.y + lastRowView.frame.size.height < self.bounds.size.height) {
+    CGFloat lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
+    CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
+    
+    if (lastRowPos + _rowHeight < availableHeight) {
         [self addBottomRow];
         [self updateVisibleRows];
     }
-    else if (lastRowView.frame.origin.y > self.bounds.size.height) {
+    else if (lastRowPos > availableHeight) {
         [self removeBottomRow];
         [self updateVisibleRows];
     }
@@ -235,15 +237,15 @@
         _indexOfFirstRow = _numberOfRows-1;
     }
     
-    UIView *curFirstRowView = [_currentCells objectAtIndex:0];
-    CGFloat cellRowHeight = [_dataSource magnifiedPickerView:self heightForRowAtIndex:_indexOfFirstRow];
-    CGFloat currentY = curFirstRowView.frame.origin.y - cellRowHeight;
+    CGFloat firstRowPos = [(NSNumber *)[_rowPositions objectAtIndex:0] floatValue];
+    CGFloat currentY = firstRowPos - _rowHeight;
     
     UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfFirstRow];
-    cellView.frame = CGRectMake(0, currentY, self.frame.size.width, cellRowHeight);
+    cellView.frame = CGRectMake(0, currentY, self.frame.size.width, _rowHeight);
     
     [_contentView addSubview:cellView];
     [_currentCells insertObject:cellView atIndex:0];
+    [_rowPositions insertObject:[NSNumber numberWithFloat:currentY] atIndex:0];
 }
 
 
@@ -254,15 +256,15 @@
         _indexOfLastRow = 0;
     }
     
-    UIView *curLastRowView = [_currentCells lastObject];
-    CGFloat cellRowHeight = [_dataSource magnifiedPickerView:self heightForRowAtIndex:_indexOfLastRow];
-    CGFloat currentHeight = curLastRowView.frame.origin.y + curLastRowView.frame.size.height;
+    CGFloat lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
+    CGFloat currentY = lastRowPos + _rowHeight;
     
     UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfLastRow];
-    cellView.frame = CGRectMake(0, currentHeight, self.frame.size.width, cellRowHeight);
+    cellView.frame = CGRectMake(0, currentY, self.frame.size.width, _rowHeight);
     
     [_contentView addSubview:cellView];
     [_currentCells addObject:cellView];
+    [_rowPositions addObject:[NSNumber numberWithFloat:currentY]];
 }
 
 
@@ -271,6 +273,7 @@
     UIView *firstRowView = [_currentCells objectAtIndex:0];
     [firstRowView removeFromSuperview];
     [_currentCells removeObject:firstRowView];
+    [_rowPositions removeObjectAtIndex:0];
     
     _indexOfFirstRow++;
     if (_indexOfFirstRow > _numberOfRows-1) {
@@ -284,6 +287,7 @@
     UIView *lastRowView = [_currentCells lastObject];
     [lastRowView removeFromSuperview];
     [_currentCells removeObject:lastRowView];
+    [_rowPositions removeLastObject];
     
     _indexOfLastRow--;
     if (_indexOfLastRow < 0) {
@@ -309,9 +313,56 @@
 - (void)scrollContentByValue:(CGFloat)value
 {
     _currentOffset += value;
+
+    // first, we adjust the stored positions of the cells
+    for (int i=0; i<_rowPositions.count; i++) {
+        NSNumber *pos = [_rowPositions objectAtIndex:i];
+        [_rowPositions replaceObjectAtIndex:i withObject:[NSNumber numberWithFloat:pos.floatValue + value]];
+    }
     
-    for (UIView *rowView in _currentCells) {
-        rowView.frame = CGRectMake(rowView.frame.origin.x, rowView.frame.origin.y + value, rowView.frame.size.width, rowView.frame.size.height);
+    CGFloat magnificationRowOverlap = _magnificationViewHeight - _rowHeight;
+    CGFloat availableHeight = self.bounds.size.height - magnificationRowOverlap;
+    CGFloat centerY = availableHeight * .5;
+    CGFloat bottomMagY = centerY - (self.bounds.size.height - availableHeight) * .5;
+
+    for (int i=0; i<_currentCells.count; i++) {
+
+        UIView *rowView = [_currentCells objectAtIndex:i];
+        
+        CGFloat dx = 0, dy = 0;
+        dy = [(NSNumber *)[_rowPositions objectAtIndex:i] floatValue];
+        
+        CGFloat rowCenter = dy + _rowHeight*.5;
+        CGFloat distanceFromCenter = centerY - rowCenter;
+        
+        CGFloat offset = 0;
+        
+        CGAffineTransform transform = CGAffineTransformIdentity;        
+        
+        if (fabsf(distanceFromCenter) <= _rowHeight) {
+            CGFloat offsetFactor =  1-(distanceFromCenter / _rowHeight);
+            offset = offsetFactor * (magnificationRowOverlap * .5);
+            
+            
+            CGFloat scaleFactor = 1-(fabsf(distanceFromCenter) / _rowHeight);
+            float scale = fmaxf(1, scaleFactor * _magnification);
+            NSLog(@"distanceFromCenter: %.2f, offsetFactor = %.2f, scaleFactor = %.2f, scale = %.2f", distanceFromCenter, offsetFactor, scaleFactor, scale);
+            
+            CGFloat scaledWidth = self.bounds.size.width * scale;
+            CGFloat scaledHeight = _rowHeight * scale;
+            
+            dx += (self.bounds.size.width - scaledWidth) * .5;
+            dy += (_rowHeight - scaledHeight) * .5;
+            
+            transform = CGAffineTransformMakeScale(scale, scale);
+        }
+        else if (dy >= bottomMagY) {
+            offset = magnificationRowOverlap;
+        }
+        
+        rowView.transform = transform;
+        rowView.frame = CGRectMake(dx, dy + offset, rowView.frame.size.width, rowView.frame.size.height);
+        [rowView setNeedsDisplay];
     }
     
     [self updateVisibleRows];
@@ -347,19 +398,39 @@
 
 #pragma mark - Nearest Row Scroll Methods
 
+- (NSUInteger)indexOfNearestRow
+{
+    NSUInteger indexOfNearestRow;
+    CGFloat closestDistance = FLT_MAX;
+    CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
+    CGFloat centerY = availableHeight * .5;
+    
+    for (int i=0; i<_rowPositions.count; i++) {
+        
+        CGFloat rowPos = [(NSNumber *)[_rowPositions objectAtIndex:i] floatValue];
+        CGFloat cellCenter = rowPos + _rowHeight * .5;
+        CGFloat distance = cellCenter - centerY;
+        
+        if (fabsf(distance) < fabsf(closestDistance)) {
+            closestDistance = distance;
+            indexOfNearestRow = i;
+        }
+    }
+    return indexOfNearestRow;
+}
 
 - (void)scrollToNearestRowWithAnimation:(BOOL)animate
 {
     // find the row nearest to the center
     NSUInteger indexOfNearestRow;
     CGFloat closestDistance = FLT_MAX;
-    CGFloat centerY = self.bounds.size.height * .5;
+    CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
+    CGFloat centerY = availableHeight * .5;
     
-    for (int i=0; i<_currentCells.count; i++) {
+    for (int i=0; i<_rowPositions.count; i++) {
         
-        UIView *currentRowCell = [_currentCells objectAtIndex:i];
-        
-        CGFloat cellCenter = currentRowCell.frame.origin.y + currentRowCell.frame.size.height * .5;
+        CGFloat rowPos = [(NSNumber *)[_rowPositions objectAtIndex:i] floatValue];        
+        CGFloat cellCenter = rowPos + _rowHeight * .5;
         CGFloat distance = cellCenter - centerY;
         
         if (fabsf(distance) < fabsf(closestDistance)) {

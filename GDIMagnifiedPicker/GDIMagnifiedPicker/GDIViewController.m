@@ -9,6 +9,9 @@
 #import "GDIViewController.h"
 #import "UIColor+GDIAdditions.h"
 
+#define kRowHeight 34.f
+#define kMagnificationRowHeight 48.f
+
 @implementation GDIViewController
 @synthesize magnifiedPickerView;
 
@@ -24,6 +27,7 @@
 {
     [super viewDidLoad];
     
+    self.magnifiedPickerView.magnification = kMagnificationRowHeight / kRowHeight;
     self.magnifiedPickerView.dataSource = self;
     self.magnifiedPickerView.delegate = self;
 }
@@ -69,18 +73,24 @@
     return 6;
 }
 
-- (CGFloat)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView heightForRowAtIndex:(NSUInteger)rowIndex
+- (CGFloat)heightForRowsInMagnifiedPickerView:(GDIMagnifiedPickerView *)pickerView
 {
-    return 32.f;
+    return kRowHeight;
+}
+
+- (CGFloat)heightForMagnificationViewInMagnifiedPickerView:(GDIMagnifiedPickerView *)pickerView
+{
+    return kMagnificationRowHeight;
 }
 
 - (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView viewForRowAtIndex:(NSUInteger)rowIndex
 {
-    UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, 32.f)];
+    UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, kRowHeight)];
     rowView.backgroundColor = [UIColor randomColorWithAlpha:.5f];
     rowView.opaque = NO;
     
     UILabel *label = [[UILabel alloc] initWithFrame:rowView.bounds];
+    label.textAlignment = UITextAlignmentCenter;
     label.backgroundColor = [UIColor clearColor];
     label.opaque = NO;
     label.text = [NSString stringWithFormat:@"Row %i", rowIndex];
