@@ -15,10 +15,8 @@
 
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDataSource> *dataSource;
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDelegate> *delegate;
-@property (strong,nonatomic,readonly) UIView *magnificationView;
 @property (nonatomic) CGFloat friction;
 @property (nonatomic) NSUInteger currentIndex;
-@property (nonatomic) CGFloat magnification;
 
 - (NSArray *)visibleRows;
 
@@ -32,6 +30,8 @@
 - (CGFloat)heightForRowsInMagnifiedPickerView:(GDIMagnifiedPickerView *)pickerView;
 - (CGFloat)heightForMagnificationViewInMagnifiedPickerView:(GDIMagnifiedPickerView *)pickerView;
 - (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView viewForRowAtIndex:(NSUInteger)rowIndex;
+- (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView magnifiedViewForRowAtIndex:(NSUInteger)rowIndex;
+
 
 @end
 

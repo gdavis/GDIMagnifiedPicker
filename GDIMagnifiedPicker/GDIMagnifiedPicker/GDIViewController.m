@@ -27,7 +27,7 @@
 {
     [super viewDidLoad];
     
-    self.magnifiedPickerView.magnification = kMagnificationRowHeight / kRowHeight;
+//    self.magnifiedPickerView.magnification = kMagnificationRowHeight / kRowHeight;
     self.magnifiedPickerView.dataSource = self;
     self.magnifiedPickerView.delegate = self;
 }
@@ -90,10 +90,28 @@
     rowView.opaque = NO;
     
     UILabel *label = [[UILabel alloc] initWithFrame:rowView.bounds];
-    label.textAlignment = UITextAlignmentCenter;
+    label.textAlignment = UITextAlignmentLeft;
     label.backgroundColor = [UIColor clearColor];
     label.opaque = NO;
     label.text = [NSString stringWithFormat:@"Row %i", rowIndex];
+    label.font = [UIFont boldSystemFontOfSize:12.f];
+    [rowView addSubview:label];
+    
+    return rowView;
+}
+
+- (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView magnifiedViewForRowAtIndex:(NSUInteger)rowIndex
+{
+    UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, kMagnificationRowHeight)];
+    rowView.backgroundColor = [UIColor randomColorWithAlpha:.5f];
+    rowView.opaque = NO;
+    
+    UILabel *label = [[UILabel alloc] initWithFrame:rowView.bounds];
+    label.textAlignment = UITextAlignmentLeft;
+    label.backgroundColor = [UIColor clearColor];
+    label.opaque = NO;
+    label.text = [NSString stringWithFormat:@"Row %i", rowIndex];
+    label.font = [UIFont boldSystemFontOfSize:12.f * (kMagnificationRowHeight/kRowHeight)];
     [rowView addSubview:label];
     
     return rowView;
