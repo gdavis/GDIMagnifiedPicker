@@ -10,6 +10,8 @@
 		772E111214E0A7B40024B845 /* grill-guide-picker-selection-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 772E111014E0A7B40024B845 /* grill-guide-picker-selection-bg.png */; };
 		772E111314E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 772E111114E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png */; };
 		772E111514E0AECE0024B845 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 772E111414E0AECE0024B845 /* QuartzCore.framework */; };
+		772E111B14E0C3770024B845 /* grill-guide-mag-view-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 772E111914E0C3770024B845 /* grill-guide-mag-view-bg.png */; };
+		772E111C14E0C3770024B845 /* grill-guide-mag-view-bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 772E111A14E0C3770024B845 /* grill-guide-mag-view-bg@2x.png */; };
 		77501AA114DC42840011923F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77501AA014DC42840011923F /* UIKit.framework */; };
 		77501AA314DC42840011923F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77501AA214DC42840011923F /* Foundation.framework */; };
 		77501AA514DC42840011923F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77501AA414DC42840011923F /* CoreGraphics.framework */; };
@@ -27,6 +29,8 @@
 		772E111014E0A7B40024B845 /* grill-guide-picker-selection-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "grill-guide-picker-selection-bg.png"; sourceTree = "<group>"; };
 		772E111114E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "grill-guide-picker-selection-bg@2x.png"; sourceTree = "<group>"; };
 		772E111414E0AECE0024B845 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		772E111914E0C3770024B845 /* grill-guide-mag-view-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "grill-guide-mag-view-bg.png"; sourceTree = "<group>"; };
+		772E111A14E0C3770024B845 /* grill-guide-mag-view-bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "grill-guide-mag-view-bg@2x.png"; sourceTree = "<group>"; };
 		77501A9C14DC42840011923F /* GDIMagnifiedPicker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GDIMagnifiedPicker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77501AA014DC42840011923F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		77501AA214DC42840011923F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -66,6 +70,8 @@
 		772E110E14E0A7A70024B845 /* images */ = {
 			isa = PBXGroup;
 			children = (
+				772E111914E0C3770024B845 /* grill-guide-mag-view-bg.png */,
+				772E111A14E0C3770024B845 /* grill-guide-mag-view-bg@2x.png */,
 				772E111014E0A7B40024B845 /* grill-guide-picker-selection-bg.png */,
 				772E111114E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png */,
 			);
@@ -193,6 +199,8 @@
 				77501AB714DC42840011923F /* GDIViewController.xib in Resources */,
 				772E111214E0A7B40024B845 /* grill-guide-picker-selection-bg.png in Resources */,
 				772E111314E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png in Resources */,
+				772E111B14E0C3770024B845 /* grill-guide-mag-view-bg.png in Resources */,
+				772E111C14E0C3770024B845 /* grill-guide-mag-view-bg@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
