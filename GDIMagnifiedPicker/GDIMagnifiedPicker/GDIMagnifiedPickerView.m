@@ -292,12 +292,14 @@
     }
     
     CGFloat lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
+    CGFloat magnificationRowOverlap = _magnificationViewHeight - _rowHeight;
     CGFloat currentY = lastRowPos + _rowHeight;
+    
     [_rowPositions addObject:[NSNumber numberWithFloat:currentY]];
     
     // build the standard cell
     UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfLastRow];
-    cellView.frame = CGRectMake(0, currentY, self.frame.size.width, _rowHeight);
+    cellView.frame = CGRectMake(0, currentY + magnificationRowOverlap, self.frame.size.width, _rowHeight);
     [_contentView addSubview:cellView];
     [_currentCells addObject:cellView];
     
