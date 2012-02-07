@@ -31,6 +31,10 @@
 @property (nonatomic) CGFloat velocity;
 @property (strong,nonatomic) NSTimer *decelerationTimer;
 @property (strong,nonatomic) NSTimer *moveToNearestRowTimer;
+@property (nonatomic) CGFloat nearestRowStartValue;
+@property (nonatomic) CGFloat nearestRowDelta;
+@property (nonatomic) CGFloat nearestRowDuration;
+@property (strong,nonatomic) NSDate *nearestRowStartTime;
 
 - (void)setDefaults;
 - (void)initDataSourceProperties;
@@ -62,6 +66,8 @@
 - (void)scrollContentByValue:(CGFloat)value;
 - (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view;
 
+- (CGFloat)easeInOutWithCurrentTime:(CGFloat)t start:(CGFloat)b change:(CGFloat)c duration:(CGFloat)d;
+
 @end
 
 
@@ -91,7 +97,10 @@
 @synthesize velocity = _velocity;
 @synthesize decelerationTimer = _decelerationTimer;
 @synthesize moveToNearestRowTimer = _moveToNearestRowTimer;
-
+@synthesize nearestRowStartValue = _nearestRowStartValue;
+@synthesize nearestRowDelta = _nearestRowDelta;
+@synthesize nearestRowDuration = _nearestRowDuration;
+@synthesize nearestRowStartTime = _nearestRowStartTime;
 
 #pragma mark - Instance Methods
 
@@ -520,6 +529,20 @@
 
 - (void)beginScrollingToNearestRow
 {
+    CGFloat delta1 = (_targetYOffset - _currentOffset);
+    CGFloat delta2 = (_targetYOffset - _currentOffset) + self.bounds.size.height;
+    
+    if (fabsf(delta1) < fabsf(delta2)) {
+        _nearestRowDelta = delta1;
+    }
+    else {
+        _nearestRowDelta = delta2;
+    }
+    
+    _nearestRowStartValue = _currentOffset;
+    _nearestRowStartTime = [NSDate date];
+    _nearestRowDuration = [[_nearestRowStartTime dateByAddingTimeInterval:.666f] timeIntervalSinceDate:_nearestRowStartTime];
+    
     [_moveToNearestRowTimer invalidate];
     _moveToNearestRowTimer = [NSTimer scheduledTimerWithTimeInterval:kAnimationInterval target:self selector:@selector(handleMoveToNearestRowTick) userInfo:nil repeats:YES];
 }
@@ -527,6 +550,7 @@
 
 - (void)endScrollingToNearestRow
 {
+    _nearestRowStartTime = nil;
     [_moveToNearestRowTimer invalidate];
     _moveToNearestRowTimer = nil;
 }
@@ -534,23 +558,18 @@
 
 - (void)handleMoveToNearestRowTick
 {
-    CGFloat delta1 = (_targetYOffset - _currentOffset);
-    CGFloat delta2 = (_targetYOffset - _currentOffset) + self.bounds.size.height;
-    CGFloat delta;
+    // see what our current duration is
+    CGFloat currentTime = fabsf([_nearestRowStartTime timeIntervalSinceNow]);
     
-    if (fabsf(delta1) < fabsf(delta2)) {
-        delta = delta1 * (1 - _friction);
-    }
-    else {
-        delta = delta2 * (1 - _friction);
-    }
-    
-    if (fabsf(delta) < .01) {
+    // stop scrolling if we are past our duration
+    if (currentTime >= _nearestRowDuration) {
         [self scrollContentByValue:_targetYOffset - _currentOffset];
         [self endScrollingToNearestRow];
     }
+    // otherwise, calculate how much we should be scrolling our content by
     else {
-        [self scrollContentByValue:delta];
+        CGFloat dy = [self easeInOutWithCurrentTime:currentTime start:_nearestRowStartValue change:_nearestRowDelta duration:_nearestRowDuration];
+        [self scrollContentByValue:dy - _currentOffset];
     }
 }
 
@@ -579,6 +598,41 @@
 - (void)gestureView:(GDITouchProxyView *)gv touchEndedAtPoint:(CGPoint)point
 {
     [self beginDeceleration];
+}
+
+
+/*
+ static function easeIn (t:Number, b:Number, c:Number, d:Number):Number {
+ return (t==0) ? b : c * Math.pow(2, 10 * (t/d - 1)) + b;
+ }
+ static function easeOut (t:Number, b:Number, c:Number, d:Number):Number {
+ return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
+ }
+ static function easeInOut (t:Number, b:Number, c:Number, d:Number):Number {
+ if (t==0) return b;
+ if (t==d) return b+c;
+ if ((t/=d/2) < 1) return c/2 * Math.pow(2, 10 * (t - 1)) + b;
+ return c/2 * (-Math.pow(2, -10 * --t) + 2) + b;
+ }
+ 
+ Easing equations taken with permission under the BSD license from Robert Penner.
+ 
+ Copyright © 2001 Robert Penner
+ All rights reserved.
+ */
+
+- (CGFloat)easeInOutWithCurrentTime:(CGFloat)t start:(CGFloat)b change:(CGFloat)c duration:(CGFloat)d
+{
+    if (t==0) {
+        return b;
+    }
+    if (t==d) {
+        return b+c;
+    }
+    if ((t/=d/2) < 1) {
+        return c/2 * powf(2, 10 * (t-1)) + b;
+    }
+    return c/2 * (-powf(2, -10 * --t) + 2) + b;
 }
 
 
