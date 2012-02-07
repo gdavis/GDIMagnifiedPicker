@@ -29,8 +29,8 @@
 {
     [super viewDidLoad];
     
-    self.magnifiedPickerView.dataSource = self;
     self.magnifiedPickerView.delegate = self;
+    self.magnifiedPickerView.dataSource = self;
     
     UIImageView *selectionView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"grill-guide-picker-selection-bg"]];
     self.magnifiedPickerView.selectionBackgroundView = selectionView;
