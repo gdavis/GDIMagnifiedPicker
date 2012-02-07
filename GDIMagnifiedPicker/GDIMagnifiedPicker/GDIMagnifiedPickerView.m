@@ -7,7 +7,6 @@
 //
 
 #import "GDIMagnifiedPickerView.h"
-#import <QuartzCore/QuartzCore.h>
 
 #define kAnimationInterval 1.f/60.f
 
@@ -71,12 +70,13 @@
 @synthesize delegate = _delegate;
 @synthesize friction = _friction;
 @synthesize currentIndex = _currentIndex;
-@synthesize magnification = _magnification;
+@synthesize selectionBackgroundView = _selectionBackgroundView;
 
 @synthesize currentCells = _currentCells;
 @synthesize currentMagnifiedCells = _currentMagnifiedCells;
 @synthesize rowPositions = _rowPositions;
 @synthesize contentView = _contentView;
+@synthesize magnification = _magnification;
 @synthesize magnificationView = _magnificationView;
 @synthesize magnifiedCellContainerView = _magnifiedCellContainerView;
 @synthesize rowHeight = _rowHeight;
@@ -127,12 +127,24 @@
     }
 }
 
+- (void)setSelectionBackgroundView:(UIView *)selectionBackgroundView
+{
+    if (_selectionBackgroundView) {
+        [_selectionBackgroundView removeFromSuperview];
+    }
+    _selectionBackgroundView = selectionBackgroundView;
+    
+    CGFloat containerY = roundf(self.bounds.size.height * .5 - _selectionBackgroundView.frame.size.height * .5);
+    _selectionBackgroundView.frame = CGRectMake(0, containerY, _selectionBackgroundView.frame.size.width, _selectionBackgroundView.frame.size.height);
+    [self insertSubview:_selectionBackgroundView belowSubview:_magnificationView];
+}
+
 
 #pragma mark - Initialization Methods
 
 - (void)setDefaults
 {
-    _friction = .95f;
+    _friction = .85f;
     _currentOffset = 0;
 }
 
@@ -169,6 +181,24 @@
     _touchProxyView = [[GDITouchProxyView alloc] initWithFrame:self.bounds];
     _touchProxyView.delegate = self;
     [self addSubview:_touchProxyView];
+}
+
+
+- (void)buildMagnificationView
+{
+    _magnificationView = [[UIView alloc] initWithFrame:CGRectMake(0, self.bounds.size.height * .5 - _magnificationViewHeight*.5, self.bounds.size.width, _magnificationViewHeight)];
+    _magnificationView.userInteractionEnabled = NO;
+    _magnificationView.clipsToBounds = YES;
+    _magnificationView.opaque = NO;
+    [self addSubview:_magnificationView];
+    
+    CGFloat magnificationRowOverlap = _magnificationViewHeight - _rowHeight;
+    CGFloat availableHeight = ( self.bounds.size.height - magnificationRowOverlap ) * _magnification;
+    CGFloat containerY = _magnificationViewHeight * .5 - availableHeight * .5;
+    _magnifiedCellContainerView = [[UIView alloc] initWithFrame:CGRectMake(0, containerY, self.bounds.size.width, availableHeight)];
+    _magnifiedCellContainerView.userInteractionEnabled = NO;
+    _magnifiedCellContainerView.opaque = NO;
+    [_magnificationView addSubview:_magnifiedCellContainerView];
 }
 
 
@@ -213,22 +243,6 @@
     }
 }
 
-
-- (void)buildMagnificationView
-{
-    _magnificationView = [[UIView alloc] initWithFrame:CGRectMake(0, self.bounds.size.height * .5 - _magnificationViewHeight*.5, self.bounds.size.width, _magnificationViewHeight)];
-    _magnificationView.userInteractionEnabled = NO;
-    _magnificationView.clipsToBounds = YES;
-    [self addSubview:_magnificationView];
-    
-    CGFloat magnificationRowOverlap = _magnificationViewHeight - _rowHeight;
-    CGFloat availableHeight = ( self.bounds.size.height - magnificationRowOverlap ) * _magnification;
-    CGFloat containerY = _magnificationViewHeight * .5 - availableHeight * .5;
-    _magnifiedCellContainerView = [[UIView alloc] initWithFrame:CGRectMake(0, containerY, self.bounds.size.width, availableHeight)];
-    _magnifiedCellContainerView.userInteractionEnabled = NO;
-    _magnifiedCellContainerView.backgroundColor = [UIColor whiteColor];    
-    [_magnificationView addSubview:_magnifiedCellContainerView];
-}
 
 #pragma mark - Row Update Methods
 
@@ -548,6 +562,7 @@
 {
     // reset the last point to where we start from.
     _lastTouchPoint = point;
+    _velocity = 0;
     
     [self endDeceleration];
     [self endScrollingToNearestRow];

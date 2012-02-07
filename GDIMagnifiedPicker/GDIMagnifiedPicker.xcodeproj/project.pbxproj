@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		772E111214E0A7B40024B845 /* grill-guide-picker-selection-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 772E111014E0A7B40024B845 /* grill-guide-picker-selection-bg.png */; };
+		772E111314E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 772E111114E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png */; };
+		772E111514E0AECE0024B845 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 772E111414E0AECE0024B845 /* QuartzCore.framework */; };
 		77501AA114DC42840011923F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77501AA014DC42840011923F /* UIKit.framework */; };
 		77501AA314DC42840011923F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77501AA214DC42840011923F /* Foundation.framework */; };
 		77501AA514DC42840011923F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77501AA414DC42840011923F /* CoreGraphics.framework */; };
@@ -21,6 +24,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		772E111014E0A7B40024B845 /* grill-guide-picker-selection-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "grill-guide-picker-selection-bg.png"; sourceTree = "<group>"; };
+		772E111114E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "grill-guide-picker-selection-bg@2x.png"; sourceTree = "<group>"; };
+		772E111414E0AECE0024B845 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		77501A9C14DC42840011923F /* GDIMagnifiedPicker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GDIMagnifiedPicker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77501AA014DC42840011923F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		77501AA214DC42840011923F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -47,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				772E111514E0AECE0024B845 /* QuartzCore.framework in Frameworks */,
 				77501AA114DC42840011923F /* UIKit.framework in Frameworks */,
 				77501AA314DC42840011923F /* Foundation.framework in Frameworks */,
 				77501AA514DC42840011923F /* CoreGraphics.framework in Frameworks */,
@@ -56,6 +63,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		772E110E14E0A7A70024B845 /* images */ = {
+			isa = PBXGroup;
+			children = (
+				772E111014E0A7B40024B845 /* grill-guide-picker-selection-bg.png */,
+				772E111114E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png */,
+			);
+			name = images;
+			sourceTree = "<group>";
+		};
 		77501A9114DC42840011923F = {
 			isa = PBXGroup;
 			children = (
@@ -76,6 +92,7 @@
 		77501A9F14DC42840011923F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				772E111414E0AECE0024B845 /* QuartzCore.framework */,
 				77501AA014DC42840011923F /* UIKit.framework */,
 				77501AA214DC42840011923F /* Foundation.framework */,
 				77501AA414DC42840011923F /* CoreGraphics.framework */,
@@ -113,6 +130,7 @@
 		77501ABD14DC42910011923F /* Magnified Picker */ = {
 			isa = PBXGroup;
 			children = (
+				772E110E14E0A7A70024B845 /* images */,
 				77501ABE14DC47BD0011923F /* GDIMagnifiedPickerView.h */,
 				77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */,
 				77501AC914DC69350011923F /* GDITouchProxyView.h */,
@@ -173,6 +191,8 @@
 			files = (
 				77501AAB14DC42840011923F /* InfoPlist.strings in Resources */,
 				77501AB714DC42840011923F /* GDIViewController.xib in Resources */,
+				772E111214E0A7B40024B845 /* grill-guide-picker-selection-bg.png in Resources */,
+				772E111314E0A7B40024B845 /* grill-guide-picker-selection-bg@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +320,7 @@
 				77501ABC14DC42840011923F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

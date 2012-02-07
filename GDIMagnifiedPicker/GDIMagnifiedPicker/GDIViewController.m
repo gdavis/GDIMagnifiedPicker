@@ -7,10 +7,11 @@
 //
 
 #import "GDIViewController.h"
+#import <QuartzCore/QuartzCore.h>
 #import "UIColor+GDIAdditions.h"
 
-#define kRowHeight 34.f
-#define kMagnificationRowHeight 48.f
+#define kRowHeight 35.f
+#define kMagnificationRowHeight 47.f
 
 @implementation GDIViewController
 @synthesize magnifiedPickerView;
@@ -27,9 +28,11 @@
 {
     [super viewDidLoad];
     
-//    self.magnifiedPickerView.magnification = kMagnificationRowHeight / kRowHeight;
     self.magnifiedPickerView.dataSource = self;
     self.magnifiedPickerView.delegate = self;
+    
+    UIImageView *selectionView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"grill-guide-picker-selection-bg"]];
+    self.magnifiedPickerView.selectionBackgroundView = selectionView;
 }
 
 - (void)viewDidUnload
@@ -86,15 +89,22 @@
 - (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView viewForRowAtIndex:(NSUInteger)rowIndex
 {
     UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, kRowHeight)];
-    rowView.backgroundColor = [UIColor randomColorWithAlpha:.5f];
+    rowView.backgroundColor = [UIColor clearColor];
     rowView.opaque = NO;
     
+    NSUInteger padding = 12;
+    CALayer *bottomLine = [CALayer layer];
+    bottomLine.frame = CGRectMake(padding, kRowHeight-1, pickerView.frame.size.width - padding*2, 1);
+    bottomLine.backgroundColor = [[UIColor colorWithRed:85.f green:79.f blue:75.f alpha:.43f rgbDivisor:255.f] CGColor];
+    [rowView.layer addSublayer:bottomLine];
+    
     UILabel *label = [[UILabel alloc] initWithFrame:rowView.bounds];
-    label.textAlignment = UITextAlignmentLeft;
+    label.textAlignment = UITextAlignmentCenter;
     label.backgroundColor = [UIColor clearColor];
+    label.textColor = [UIColor colorWithRed:106.f green:106.f blue:106.f alpha:1.f rgbDivisor:255.f];
     label.opaque = NO;
-    label.text = [NSString stringWithFormat:@"Row %i", rowIndex];
-    label.font = [UIFont boldSystemFontOfSize:12.f];
+    label.text = [NSString stringWithFormat:@"OPTION %i", rowIndex];
+    label.font = [UIFont boldSystemFontOfSize:13.f];
     [rowView addSubview:label];
     
     return rowView;
@@ -103,15 +113,15 @@
 - (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView magnifiedViewForRowAtIndex:(NSUInteger)rowIndex
 {
     UIView *rowView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pickerView.frame.size.width, kMagnificationRowHeight)];
-    rowView.backgroundColor = [UIColor randomColorWithAlpha:.5f];
+    rowView.backgroundColor = [UIColor clearColor];
     rowView.opaque = NO;
     
     UILabel *label = [[UILabel alloc] initWithFrame:rowView.bounds];
-    label.textAlignment = UITextAlignmentLeft;
+    label.textAlignment = UITextAlignmentCenter;
     label.backgroundColor = [UIColor clearColor];
     label.opaque = NO;
-    label.text = [NSString stringWithFormat:@"Row %i", rowIndex];
-    label.font = [UIFont boldSystemFontOfSize:12.f * (kMagnificationRowHeight/kRowHeight)];
+    label.text = [NSString stringWithFormat:@"OPTION %i", rowIndex];
+    label.font = [UIFont boldSystemFontOfSize:28.f];
     [rowView addSubview:label];
     
     return rowView;

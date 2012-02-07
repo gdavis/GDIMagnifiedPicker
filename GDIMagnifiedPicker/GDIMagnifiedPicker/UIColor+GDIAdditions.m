@@ -10,6 +10,11 @@
 
 @implementation UIColor (GDIAdditions)
 
++ (UIColor *)colorWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha rgbDivisor:(CGFloat)divisor
+{
+    return [UIColor colorWithRed:red/divisor green:green/divisor blue:blue/divisor alpha:alpha];
+}
+
 + (UIColor *)randomColor
 {
     CGFloat red =  (CGFloat)random()/(CGFloat)RAND_MAX;
