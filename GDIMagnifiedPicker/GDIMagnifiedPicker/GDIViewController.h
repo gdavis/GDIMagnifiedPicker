@@ -12,5 +12,6 @@
 @interface GDIViewController : UIViewController <GDIMagnifiedPickerViewDataSource, GDIMagnifiedPickerViewDelegate>
 
 @property (weak, nonatomic) IBOutlet GDIMagnifiedPickerView *magnifiedPickerView;
+@property (weak, nonatomic) IBOutlet UILabel *currentSelectionLabel;
 
 @end

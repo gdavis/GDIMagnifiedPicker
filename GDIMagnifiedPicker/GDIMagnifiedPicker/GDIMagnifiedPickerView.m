@@ -61,8 +61,6 @@
 - (void)endDeceleration;
 - (void)handleDecelerateTick;
 
-- (NSUInteger)indexOfNearestRow;
-
 - (void)scrollContentByValue:(CGFloat)value;
 - (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view;
 
@@ -216,11 +214,13 @@
     _currentCells = [NSMutableArray array];
     _currentMagnifiedCells = [NSMutableArray array];
     _rowPositions = [NSMutableArray array];
-    _indexOfFirstRow = 0;
     
     NSUInteger numberOfDisplayedCells = floorf(self.bounds.size.height / _rowHeight);    
     CGFloat currentY = 0.f;
     CGFloat currentMagY = 0.f;
+    
+    _indexOfFirstRow = 0;
+    _indexOfLastRow = numberOfDisplayedCells-1;
     
     for (int i=0; i<numberOfDisplayedCells; i++) {
         
@@ -464,27 +464,6 @@
 
 #pragma mark - Nearest Row Scroll Methods
 
-
-- (NSUInteger)indexOfNearestRow
-{
-    NSUInteger indexOfNearestRow;
-    CGFloat closestDistance = FLT_MAX;
-    CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
-    CGFloat centerY = availableHeight * .5;
-    
-    for (int i=0; i<_rowPositions.count; i++) {
-        
-        CGFloat rowPos = [(NSNumber *)[_rowPositions objectAtIndex:i] floatValue];
-        CGFloat cellCenter = rowPos + _rowHeight * .5;
-        CGFloat distance = cellCenter - centerY;
-        
-        if (fabsf(distance) < fabsf(closestDistance)) {
-            closestDistance = distance;
-            indexOfNearestRow = i;
-        }
-    }
-    return indexOfNearestRow;
-}
 
 - (void)scrollToNearestRowWithAnimation:(BOOL)animate
 {

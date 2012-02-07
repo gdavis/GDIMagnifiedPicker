@@ -15,6 +15,7 @@
 
 @implementation GDIViewController
 @synthesize magnifiedPickerView;
+@synthesize currentSelectionLabel;
 
 - (void)didReceiveMemoryWarning
 {
@@ -38,6 +39,7 @@
 - (void)viewDidUnload
 {
     [self setMagnifiedPickerView:nil];
+    [self setCurrentSelectionLabel:nil];
     [super viewDidUnload];
 }
 
@@ -132,7 +134,7 @@
 
 - (void)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView didSelectRowAtIndex:(NSUInteger)rowIndex
 {
-    
+    self.currentSelectionLabel.text = [NSString stringWithFormat:@"Current row: %i", rowIndex];
 }
 
 
