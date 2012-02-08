@@ -138,4 +138,7 @@
 }
 
 
+- (IBAction)reloadPicker:(id)sender {
+    [self.magnifiedPickerView reloadData];
+}
 @end

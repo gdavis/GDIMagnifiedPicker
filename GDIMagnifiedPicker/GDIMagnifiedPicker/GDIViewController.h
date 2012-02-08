@@ -13,5 +13,6 @@
 
 @property (weak, nonatomic) IBOutlet GDIMagnifiedPickerView *magnifiedPickerView;
 @property (weak, nonatomic) IBOutlet UILabel *currentSelectionLabel;
+- (IBAction)reloadPicker:(id)sender;
 
 @end

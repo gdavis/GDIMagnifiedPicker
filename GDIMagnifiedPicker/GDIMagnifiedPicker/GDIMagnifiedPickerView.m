@@ -39,7 +39,7 @@
 - (void)setDefaults;
 - (void)initDataSourceProperties;
 
-- (void)build;
+- (void)buildViews;
 - (void)buildContentView;
 - (void)buildTouchProxyView;
 - (void)buildVisibleRows;
@@ -107,6 +107,7 @@
     self = [super initWithFrame:frame];
     if (self) {
         [self setDefaults];
+        [self buildViews];
     }
     return self;
 }
@@ -116,6 +117,7 @@
 {
     [super awakeFromNib];
     [self setDefaults];
+    [self buildViews];
 }
 
 
@@ -124,13 +126,43 @@
     return [NSArray arrayWithArray:_currentCells];
 }
 
+- (void)reloadData
+{
+    for (UIView *view in _currentCells) {
+        [view removeFromSuperview];
+    }
+    [_currentCells removeAllObjects];
+    
+    for (UIView *view in _currentMagnifiedCells) {
+        [view removeFromSuperview];
+    }
+    [_currentMagnifiedCells removeAllObjects];
+    
+    [self initDataSourceProperties];
+    [self layoutSubviews];
+    [self buildVisibleRows];
+    [self scrollToNearestRowWithAnimation:NO];
+}
+
+- (void)layoutSubviews
+{
+    // TODO: Add additional support for adjusting the content size on the fly.    
+    _contentView.frame = self.bounds;
+    _touchProxyView.frame = self.bounds;
+    
+    _magnificationView.frame = CGRectMake(0, self.bounds.size.height * .5 - _magnificationViewHeight*.5, self.bounds.size.width, _magnificationViewHeight);
+
+    CGFloat magnificationRowOverlap = _magnificationViewHeight - _rowHeight;
+    CGFloat availableHeight = ( self.bounds.size.height - magnificationRowOverlap ) * _magnification;
+    CGFloat containerY = _magnificationViewHeight * .5 - availableHeight * .5;
+    _magnifiedCellContainerView.frame = CGRectMake(0, containerY, self.bounds.size.width, availableHeight);
+}
+
 - (void)setDataSource:(NSObject<GDIMagnifiedPickerViewDataSource> *)dataSource
 {
     _dataSource = dataSource;
     if (_dataSource != nil) {
-        [self initDataSourceProperties];
-        [self build];
-        [self scrollToNearestRowWithAnimation:NO];
+        [self reloadData];
     }
 }
 
@@ -167,12 +199,11 @@
 
 #pragma mark - Build Methods
 
-- (void)build
+- (void)buildViews
 {    
     [self buildContentView];
     [self buildTouchProxyView];
     [self buildMagnificationView];
-    [self buildVisibleRows];
 }
 
 - (void)buildContentView 

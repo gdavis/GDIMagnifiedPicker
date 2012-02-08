@@ -19,6 +19,7 @@
 @property (nonatomic) NSUInteger currentIndex;
 @property (strong,nonatomic) UIView *selectionBackgroundView;
 - (NSArray *)visibleRows;
+- (void)reloadData;
 
 @end
 
