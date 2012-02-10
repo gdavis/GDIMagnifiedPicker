@@ -274,14 +274,13 @@
         GDIMagnifiedPickerCell *cellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeStandard atRowIndex:i];
         cellView.cellType = GDIMagnifiedPickerCellTypeStandard;
         cellView.frame = CGRectMake(0, currentY, self.bounds.size.width, _rowHeight);
-        
         [_contentView addSubview:cellView];
         [_currentCells addObject:cellView];
         
         
         // build the magnified cells
         GDIMagnifiedPickerCell *magnifiedCellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeMagnified atRowIndex:i];
-        cellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
+        magnifiedCellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
         magnifiedCellView.frame = CGRectMake(0, currentMagY, self.bounds.size.width, _magnificationViewHeight);
         [_magnifiedCellContainerView addSubview:magnifiedCellView];
         [_currentMagnifiedCells addObject:magnifiedCellView];
