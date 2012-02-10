@@ -7,6 +7,7 @@
 //
 
 #import "GDIMagnifiedPickerView.h"
+#import "GDIMagnifiedPickerCell.h"
 
 #define kAnimationInterval 1.f/60.f
 
@@ -15,6 +16,7 @@
 @property (strong,nonatomic) NSMutableArray *currentCells;
 @property (strong,nonatomic) NSMutableArray *currentMagnifiedCells;
 @property (strong,nonatomic) NSMutableArray *rowPositions;
+@property (strong,nonatomic) NSMutableDictionary *dequeuedCells;
 @property (strong,nonatomic) UIView *contentView;
 @property (strong,nonatomic) UIView *magnificationView;
 @property (strong,nonatomic) UIView *magnifiedCellContainerView;
@@ -66,6 +68,8 @@
 
 - (CGFloat)easeInOutWithCurrentTime:(CGFloat)t start:(CGFloat)b change:(CGFloat)c duration:(CGFloat)d;
 
+- (void)storeDequeuedCell:(UIView *)cell withCellType:(GDIMagnifiedPickerCellType)type;
+
 @end
 
 
@@ -79,6 +83,7 @@
 @synthesize currentCells = _currentCells;
 @synthesize currentMagnifiedCells = _currentMagnifiedCells;
 @synthesize rowPositions = _rowPositions;
+@synthesize dequeuedCells = _dequeuedCells;
 @synthesize contentView = _contentView;
 @synthesize magnification = _magnification;
 @synthesize magnificationView = _magnificationView;
@@ -128,6 +133,13 @@
 
 - (void)reloadData
 {
+    if (_dequeuedCells == nil) {
+        _dequeuedCells = [NSMutableDictionary dictionary];
+    }
+    else {
+        [_dequeuedCells removeAllObjects];
+    }
+    
     _currentIndex = -1;
     
     for (UIView *view in _currentCells) {
@@ -185,6 +197,7 @@
 
 - (void)setDefaults
 {
+    self.clearsContextBeforeDrawing = NO;
     _friction = .85f;
     _currentOffset = 0;
 }
@@ -258,7 +271,8 @@
     for (int i=0; i<numberOfDisplayedCells; i++) {
         
         // build the standard sized cells
-        UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:i];
+        GDIMagnifiedPickerCell *cellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeStandard atRowIndex:i];
+        cellView.cellType = GDIMagnifiedPickerCellTypeStandard;
         cellView.frame = CGRectMake(0, currentY, self.bounds.size.width, _rowHeight);
         
         [_contentView addSubview:cellView];
@@ -266,7 +280,8 @@
         
         
         // build the magnified cells
-        UIView *magnifiedCellView = [_dataSource magnifiedPickerView:self magnifiedViewForRowAtIndex:i];
+        GDIMagnifiedPickerCell *magnifiedCellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeMagnified atRowIndex:i];
+        cellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
         magnifiedCellView.frame = CGRectMake(0, currentMagY, self.bounds.size.width, _magnificationViewHeight);
         [_magnifiedCellContainerView addSubview:magnifiedCellView];
         [_currentMagnifiedCells addObject:magnifiedCellView];
@@ -285,6 +300,31 @@
     }
 }
 
+
+#pragma mark - Cell Reuse
+
+
+- (GDIMagnifiedPickerCell *)dequeueCellWithType:(GDIMagnifiedPickerCellType)type
+{
+    GDIMagnifiedPickerCell *dequeuedCell = nil;
+    
+    NSString *cellTypeKey = [NSString stringWithFormat:@"%d", type];
+    dequeuedCell = [_dequeuedCells objectForKey:cellTypeKey];
+    
+    if (dequeuedCell) {
+        [_dequeuedCells removeObjectForKey:cellTypeKey];
+    }
+    
+    return dequeuedCell;
+}
+
+- (void)storeDequeuedCell:(UIView *)cell withCellType:(GDIMagnifiedPickerCellType)type
+{
+    NSString *cellTypeKey = [NSString stringWithFormat:@"%d", type];
+    if ([_dequeuedCells objectForKey:cellTypeKey] == nil) {
+        [_dequeuedCells setObject:cell forKey:cellTypeKey];
+    }
+}
 
 #pragma mark - Row Update Methods
 
@@ -326,14 +366,16 @@
     [_rowPositions insertObject:[NSNumber numberWithFloat:currentY] atIndex:0];
     
     // build the standard cell
-    UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfFirstRow];
+    GDIMagnifiedPickerCell *cellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeStandard atRowIndex:_indexOfFirstRow];
+    cellView.cellType = GDIMagnifiedPickerCellTypeStandard;
     cellView.frame = CGRectMake(0, currentY, self.frame.size.width, _rowHeight);
     
     [_contentView addSubview:cellView];
     [_currentCells insertObject:cellView atIndex:0];
     
     // build the magnified cell
-    UIView *magnifiedCellView = [_dataSource magnifiedPickerView:self magnifiedViewForRowAtIndex:_indexOfFirstRow];
+    GDIMagnifiedPickerCell *magnifiedCellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeMagnified atRowIndex:_indexOfFirstRow];
+    magnifiedCellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
     magnifiedCellView.frame = CGRectMake(0, firstRowPos - _magnificationViewHeight, self.bounds.size.width, _magnificationViewHeight);
     [_magnifiedCellContainerView addSubview:magnifiedCellView];
     [_currentMagnifiedCells insertObject:magnifiedCellView atIndex:0];
@@ -354,13 +396,15 @@
     [_rowPositions addObject:[NSNumber numberWithFloat:currentY]];
     
     // build the standard cell
-    UIView *cellView = [_dataSource magnifiedPickerView:self viewForRowAtIndex:_indexOfLastRow];
+    GDIMagnifiedPickerCell *cellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeStandard atRowIndex:_indexOfLastRow];
+    cellView.cellType = GDIMagnifiedPickerCellTypeStandard;
     cellView.frame = CGRectMake(0, currentY + magnificationRowOverlap, self.frame.size.width, _rowHeight);
     [_contentView addSubview:cellView];
     [_currentCells addObject:cellView];
     
     // build the magnified cell
-    UIView *magnifiedCellView = [_dataSource magnifiedPickerView:self magnifiedViewForRowAtIndex:_indexOfLastRow];
+    GDIMagnifiedPickerCell *magnifiedCellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeMagnified atRowIndex:_indexOfLastRow];
+    magnifiedCellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
     magnifiedCellView.frame = CGRectMake(0, lastRowPos + _magnificationViewHeight, self.bounds.size.width, _magnificationViewHeight);
     [_magnifiedCellContainerView addSubview:magnifiedCellView];
     [_currentMagnifiedCells addObject:magnifiedCellView];
@@ -373,10 +417,12 @@
     [firstRowView removeFromSuperview];
     [_currentCells removeObject:firstRowView];
     [_rowPositions removeObjectAtIndex:0];
+    [self storeDequeuedCell:firstRowView withCellType:GDIMagnifiedPickerCellTypeStandard];
     
     UIView *firstRowMagView = [_currentMagnifiedCells objectAtIndex:0];
     [firstRowMagView removeFromSuperview];
     [_currentMagnifiedCells removeObject:firstRowMagView];
+    [self storeDequeuedCell:firstRowMagView withCellType:GDIMagnifiedPickerCellTypeMagnified];
     
     _indexOfFirstRow++;
     if (_indexOfFirstRow > _numberOfRows-1) {
@@ -391,10 +437,12 @@
     [lastRowView removeFromSuperview];
     [_currentCells removeObject:lastRowView];
     [_rowPositions removeLastObject];
+    [self storeDequeuedCell:lastRowView withCellType:GDIMagnifiedPickerCellTypeStandard];
     
     UIView *lastRowMagView = [_currentMagnifiedCells lastObject];
     [lastRowMagView removeFromSuperview];
     [_currentMagnifiedCells removeLastObject];
+    [self storeDequeuedCell:lastRowMagView withCellType:GDIMagnifiedPickerCellTypeMagnified];
     
     _indexOfLastRow--;
     if (_indexOfLastRow < 0) {

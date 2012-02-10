@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "GDITouchProxyView.h"
+#import "GDIMagnifiedPickerCell.h"
 
 @protocol GDIMagnifiedPickerViewDataSource, GDIMagnifiedPickerViewDelegate;
 
@@ -20,6 +21,7 @@
 @property (strong,nonatomic) UIView *selectionBackgroundView;
 - (NSArray *)visibleRows;
 - (void)reloadData;
+- (GDIMagnifiedPickerCell *)dequeueCellWithType:(GDIMagnifiedPickerCellType)type;
 
 @end
 
@@ -30,9 +32,7 @@
 - (NSUInteger)numberOfRowsInMagnifiedPickerView:(GDIMagnifiedPickerView*)pickerView;
 - (CGFloat)heightForRowsInMagnifiedPickerView:(GDIMagnifiedPickerView *)pickerView;
 - (CGFloat)heightForMagnificationViewInMagnifiedPickerView:(GDIMagnifiedPickerView *)pickerView;
-- (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView viewForRowAtIndex:(NSUInteger)rowIndex;
-- (UIView *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView magnifiedViewForRowAtIndex:(NSUInteger)rowIndex;
-
+- (GDIMagnifiedPickerCell *)magnifiedPickerView:(GDIMagnifiedPickerView *)pickerView cellForRowType:(GDIMagnifiedPickerCellType)type atRowIndex:(NSUInteger)rowIndex;
 
 @end
 

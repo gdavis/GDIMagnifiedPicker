@@ -23,6 +23,7 @@
 		77501AC014DC47BD0011923F /* GDIMagnifiedPickerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */; };
 		77501AC314DC520B0011923F /* UIColor+GDIAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */; };
 		77501ACB14DC69350011923F /* GDITouchProxyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 77501ACA14DC69350011923F /* GDITouchProxyView.m */; };
+		77F3419E14E4E9FF008E5384 /* GDIMagnifiedPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 77F3419D14E4E9FF008E5384 /* GDIMagnifiedPickerCell.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,8 @@
 		77501AC214DC520B0011923F /* UIColor+GDIAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+GDIAdditions.m"; sourceTree = "<group>"; };
 		77501AC914DC69350011923F /* GDITouchProxyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDITouchProxyView.h; sourceTree = "<group>"; };
 		77501ACA14DC69350011923F /* GDITouchProxyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDITouchProxyView.m; sourceTree = "<group>"; };
+		77F3419C14E4E9FF008E5384 /* GDIMagnifiedPickerCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GDIMagnifiedPickerCell.h; sourceTree = "<group>"; };
+		77F3419D14E4E9FF008E5384 /* GDIMagnifiedPickerCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GDIMagnifiedPickerCell.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,6 +142,8 @@
 				772E110E14E0A7A70024B845 /* images */,
 				77501ABE14DC47BD0011923F /* GDIMagnifiedPickerView.h */,
 				77501ABF14DC47BD0011923F /* GDIMagnifiedPickerView.m */,
+				77F3419C14E4E9FF008E5384 /* GDIMagnifiedPickerCell.h */,
+				77F3419D14E4E9FF008E5384 /* GDIMagnifiedPickerCell.m */,
 				77501AC914DC69350011923F /* GDITouchProxyView.h */,
 				77501ACA14DC69350011923F /* GDITouchProxyView.m */,
 			);
@@ -217,6 +222,7 @@
 				77501AC014DC47BD0011923F /* GDIMagnifiedPickerView.m in Sources */,
 				77501AC314DC520B0011923F /* UIColor+GDIAdditions.m in Sources */,
 				77501ACB14DC69350011923F /* GDITouchProxyView.m in Sources */,
+				77F3419E14E4E9FF008E5384 /* GDIMagnifiedPickerCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
