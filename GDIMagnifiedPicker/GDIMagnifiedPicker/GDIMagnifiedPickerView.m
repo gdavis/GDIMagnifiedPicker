@@ -128,6 +128,8 @@
 
 - (void)reloadData
 {
+    _currentIndex = -1;
+    
     for (UIView *view in _currentCells) {
         [view removeFromSuperview];
     }
@@ -499,7 +501,7 @@
 - (void)scrollToNearestRowWithAnimation:(BOOL)animate
 {
     // find the row nearest to the center
-    NSUInteger indexOfNearestRow;
+    NSUInteger indexOfNearestRow = 0;
     CGFloat closestDistance = FLT_MAX;
     CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
     CGFloat centerY = availableHeight * .5;
@@ -518,15 +520,18 @@
     }
     
     // determine the current index of the selected slice
-    _currentIndex = _indexOfFirstRow + indexOfNearestRow;
-    
-    if (_currentIndex > _numberOfRows-1) {
-        _currentIndex = fmodf(_currentIndex, _numberOfRows);
+    NSUInteger newIndex = _indexOfFirstRow + indexOfNearestRow;
+    if (newIndex > _numberOfRows-1) {
+        newIndex = fmodf(newIndex, _numberOfRows);
     }
     
-    if ([_delegate respondsToSelector:@selector(magnifiedPickerView:didSelectRowAtIndex:)]) {
-        [_delegate magnifiedPickerView:self didSelectRowAtIndex:_currentIndex];
-    }
+    if (newIndex != _currentIndex) {
+        _currentIndex = newIndex;
+        
+        if ([_delegate respondsToSelector:@selector(magnifiedPickerView:didSelectRowAtIndex:)]) {
+            [_delegate magnifiedPickerView:self didSelectRowAtIndex:_currentIndex];
+        }
+    }    
     
     if (animate) {
         [self beginScrollingToNearestRow];

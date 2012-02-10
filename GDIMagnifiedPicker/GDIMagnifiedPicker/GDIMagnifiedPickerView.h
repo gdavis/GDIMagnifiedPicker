@@ -16,7 +16,7 @@
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDataSource> *dataSource;
 @property (strong,nonatomic) NSObject<GDIMagnifiedPickerViewDelegate> *delegate;
 @property (nonatomic) CGFloat friction;
-@property (nonatomic) NSUInteger currentIndex;
+@property (nonatomic) NSInteger currentIndex;
 @property (strong,nonatomic) UIView *selectionBackgroundView;
 - (NSArray *)visibleRows;
 - (void)reloadData;
