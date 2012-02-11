@@ -133,6 +133,10 @@
 
 - (void)reloadData
 {
+    if (_dataSource == nil) {
+        return;
+    }
+    
     if (_dequeuedCells == nil) {
         _dequeuedCells = [NSMutableDictionary dictionary];
     }
