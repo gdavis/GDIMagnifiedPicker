@@ -59,6 +59,8 @@
 - (void)beginScrollingToNearestRow;
 - (void)endScrollingToNearestRow;
 
+- (void)selectRowAtPoint:(CGPoint)point;
+
 - (void)beginDeceleration;
 - (void)endDeceleration;
 - (void)handleDecelerateTick;
@@ -640,6 +642,46 @@
     }
 }
 
+#pragma mark - Tap Selection
+
+- (void)selectRowAtPoint:(CGPoint)point
+{
+    // find the cell that contains the point sent from the touch proxy view
+    UIView *selectedCell;
+    for (UIView *view in _currentCells) {
+        CGPoint locationInView = [view convertPoint:point fromView:_touchProxyView];
+        if ([view pointInside:locationInView withEvent:nil]) {
+            selectedCell = view;
+            break;
+        }
+    }
+    
+    // determine how far we have to move to get to center that cell
+    NSUInteger indexOfSelectdCell = [_currentCells indexOfObject:selectedCell];
+    CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
+    CGFloat centerY = availableHeight * .5;
+    CGFloat rowPos = [(NSNumber *)[_rowPositions objectAtIndex:indexOfSelectdCell] floatValue];        
+    CGFloat cellCenter = rowPos + _rowHeight * .5;
+    CGFloat distance = cellCenter - centerY;
+    _targetYOffset = _currentOffset - distance;
+    
+    // determine the current index of the selected slice
+    NSUInteger newIndex = _indexOfFirstRow + indexOfSelectdCell;
+    if (newIndex > _numberOfRows-1) {
+        newIndex = fmodf(newIndex, _numberOfRows);
+    }
+    
+    if (newIndex != _currentIndex) {
+        _currentIndex = newIndex;
+        
+        if ([_delegate respondsToSelector:@selector(magnifiedPickerView:didSelectRowAtIndex:)]) {
+            [_delegate magnifiedPickerView:self didSelectRowAtIndex:_currentIndex];
+        }
+    }    
+    
+    [self beginScrollingToNearestRow];
+}
+
 
 #pragma mark - Gesture View Delegate
 
@@ -664,7 +706,15 @@
 
 - (void)gestureView:(GDITouchProxyView *)gv touchEndedAtPoint:(CGPoint)point
 {
-    [self beginDeceleration];
+    if (fabsf(_velocity) < 1.f) {
+        // tap action
+        _velocity = 0.f;
+        [self selectRowAtPoint:point];
+    }
+    else {
+        // drag action
+        [self beginDeceleration];
+    }
 }
 
 
