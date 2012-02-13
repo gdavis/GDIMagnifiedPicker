@@ -658,6 +658,12 @@
     
     // determine how far we have to move to get to center that cell
     NSUInteger indexOfSelectdCell = [_currentCells indexOfObject:selectedCell];
+    
+    if (indexOfSelectdCell == NSNotFound) {
+        [self scrollToNearestRowWithAnimation:YES];
+        return;
+    }
+    
     CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
     CGFloat centerY = availableHeight * .5;
     CGFloat rowPos = [(NSNumber *)[_rowPositions objectAtIndex:indexOfSelectdCell] floatValue];        
