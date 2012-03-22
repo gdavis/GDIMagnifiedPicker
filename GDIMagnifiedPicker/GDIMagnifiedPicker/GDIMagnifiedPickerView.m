@@ -10,8 +10,11 @@
 #import "GDIMagnifiedPickerCell.h"
 
 #define kAnimationInterval 1.f/60.f
+#define kVelocityFalloffFactor .85f
 
-@interface GDIMagnifiedPickerView()
+@interface GDIMagnifiedPickerView() {
+    BOOL _isUserDragging;
+}
 
 @property (strong,nonatomic) NSMutableArray *currentCells;
 @property (strong,nonatomic) NSMutableArray *currentMagnifiedCells;
@@ -33,6 +36,7 @@
 @property (nonatomic) CGFloat velocity;
 @property (strong,nonatomic) NSTimer *decelerationTimer;
 @property (strong,nonatomic) NSTimer *moveToNearestRowTimer;
+@property (strong,nonatomic) NSTimer *velocityFalloffTimer;
 @property (nonatomic) CGFloat nearestRowStartValue;
 @property (nonatomic) CGFloat nearestRowDelta;
 @property (nonatomic) CGFloat nearestRowDuration;
@@ -64,6 +68,10 @@
 - (void)beginDeceleration;
 - (void)endDeceleration;
 - (void)handleDecelerateTick;
+
+- (void)startVelocityFalloffTimer;
+- (void)endVelocityFalloffTimer;
+- (void)handleVelocityFalloffTick;
 
 - (void)scrollContentByValue:(CGFloat)value;
 - (void)trackTouchPoint:(CGPoint)point inView:(UIView*)view;
@@ -102,6 +110,7 @@
 @synthesize velocity = _velocity;
 @synthesize decelerationTimer = _decelerationTimer;
 @synthesize moveToNearestRowTimer = _moveToNearestRowTimer;
+@synthesize velocityFalloffTimer = _velocityFalloffTimer;
 @synthesize nearestRowStartValue = _nearestRowStartValue;
 @synthesize nearestRowDelta = _nearestRowDelta;
 @synthesize nearestRowDuration = _nearestRowDuration;
@@ -138,6 +147,11 @@
     if (_dataSource == nil) {
         return;
     }
+    
+    // stop all timers
+    [self endDeceleration];
+    [self endScrollingToNearestRow];
+    [self endVelocityFalloffTimer];
     
     if (_dequeuedCells == nil) {
         _dequeuedCells = [NSMutableDictionary dictionary];
@@ -263,47 +277,54 @@
 
 - (void)buildVisibleRows
 {
+    // build containers for views and their positions
     _currentCells = [NSMutableArray array];
     _currentMagnifiedCells = [NSMutableArray array];
+    
+    // this position array contains the positions of the views as if they were side by side.
+    // when they actually get positioned, the cells nearest the center are distributed to fill
+    // the extra space of the view. these values are stored and non-distrubted values so
+    // we have an accurate, simple reading of where cells are placed. 
     _rowPositions = [NSMutableArray array];
     
-    NSUInteger numberOfDisplayedCells = floorf(self.bounds.size.height / _rowHeight);    
-    CGFloat currentY = 0.f;
-    CGFloat currentMagY = 0.f;
+    // zero set all our indicies
+    _indexOfFirstRow = 
+    _indexOfLastRow = 0;
     
-    _indexOfFirstRow = 0;
-    _indexOfLastRow = numberOfDisplayedCells-1;
+    // here we calculate our positioning for our first view.
+    // we only manually build the first view here and then let
+    // our 'updateVisibleRows' method do the heavy lifting of
+    // filling in the view with rows until it is full.
+    CGFloat magnificationRowOverlap = _magnificationViewHeight - _rowHeight;
+    CGFloat availableHeight = self.bounds.size.height - magnificationRowOverlap;
     
-    for (int i=0; i<numberOfDisplayedCells; i++) {
-        
-        // build the standard sized cells
-        GDIMagnifiedPickerCell *cellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeStandard atRowIndex:i];
-        cellView.cellType = GDIMagnifiedPickerCellTypeStandard;
-        cellView.frame = CGRectMake(0, currentY, self.bounds.size.width, _rowHeight);
-        
-        [_contentView addSubview:cellView];
-        [_currentCells addObject:cellView];
-        
-        
-        // build the magnified cells
-        GDIMagnifiedPickerCell *magnifiedCellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeMagnified atRowIndex:i];
-        cellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
-        magnifiedCellView.frame = CGRectMake(0, currentMagY, self.bounds.size.width, _magnificationViewHeight);
-        [_magnifiedCellContainerView addSubview:magnifiedCellView];
-        [_currentMagnifiedCells addObject:magnifiedCellView];
-        
-        // store the position of this cell
-        [_rowPositions addObject:[NSNumber numberWithFloat:currentY]];
-        
-        // increment position
-        currentY += _rowHeight;
-        currentMagY += _magnificationViewHeight;
-        
-        // start repeating rows if we don't have enough to fill the view
-        if (i == _numberOfRows-1) {
-            i = -1;
-        }
-    }
+    // find starting positions
+    CGFloat rowY = self.bounds.size.height * .5 - _rowHeight * .5;
+    CGFloat posY = availableHeight * .5 - _rowHeight * .5; // value stored in non-distributed position array
+    CGFloat magStartY = self.bounds.size.height * .5 - _magnificationViewHeight * .5;
+    
+    // build the standard sized cells
+    GDIMagnifiedPickerCell *cellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeStandard atRowIndex:0];
+    cellView.cellType = GDIMagnifiedPickerCellTypeStandard;
+    cellView.frame = CGRectMake(0, rowY, self.bounds.size.width, _rowHeight);
+    
+    // store
+    [_contentView addSubview:cellView];
+    [_currentCells addObject:cellView];
+    
+    // build the magnified cells
+    GDIMagnifiedPickerCell *magnifiedCellView = [_dataSource magnifiedPickerView:self cellForRowType:GDIMagnifiedPickerCellTypeMagnified atRowIndex:0];
+    cellView.cellType = GDIMagnifiedPickerCellTypeMagnified;
+    magnifiedCellView.frame = CGRectMake(0, magStartY, self.bounds.size.width, _magnificationViewHeight);
+    [_magnifiedCellContainerView addSubview:magnifiedCellView];
+    [_currentMagnifiedCells addObject:magnifiedCellView];
+    
+    // store the position of this cell
+    [_rowPositions addObject:[NSNumber numberWithFloat:posY]];
+    
+    // calls the method responsible for checking the stored cells vs the available space
+    // and adds and removes rows as necessary to fill the space.
+    [self updateVisibleRows];
 }
 
 
@@ -335,27 +356,33 @@
 #pragma mark - Row Update Methods
 
 - (void)updateVisibleRows
-{
-    CGFloat firstRowPos = [(NSNumber *)[_rowPositions objectAtIndex:0] floatValue];
-    if (firstRowPos + _rowHeight < 0) {
-        [self removeTopRow];
-        [self updateVisibleRows];
-    }
-    else if (firstRowPos > 0) {
-        [self addTopRow];
-        [self updateVisibleRows];
-    }
-    
-    CGFloat lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
+{   
     CGFloat availableHeight = self.bounds.size.height - (_magnificationViewHeight - _rowHeight);
+    CGFloat firstRowPos = [(NSNumber *)[_rowPositions objectAtIndex:0] floatValue];
+    CGFloat lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
     
-    if (lastRowPos + _rowHeight < availableHeight) {
-        [self addBottomRow];
-        [self updateVisibleRows];
+    // remove views that are too far up
+    while (firstRowPos + _rowHeight < 0) {
+        [self removeTopRow];
+        firstRowPos = [(NSNumber *)[_rowPositions objectAtIndex:0] floatValue];
     }
-    else if (lastRowPos > availableHeight) {
+    
+    // remove views that are too far down
+    while (lastRowPos > availableHeight) {
         [self removeBottomRow];
-        [self updateVisibleRows];
+        lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
+    }
+    
+    // add views to fill the bottom
+    while (lastRowPos + _rowHeight < availableHeight) {
+        [self addBottomRow];
+        lastRowPos = [(NSNumber *)[_rowPositions lastObject] floatValue];
+    }
+    
+    // add views to fill the top
+    while (firstRowPos > 0) {
+        [self addTopRow];
+        firstRowPos = [(NSNumber *)[_rowPositions objectAtIndex:0] floatValue];
     }
 }
 
@@ -527,7 +554,8 @@
 - (void)beginDeceleration
 {
     [_decelerationTimer invalidate];
-    _decelerationTimer = [NSTimer scheduledTimerWithTimeInterval:kAnimationInterval target:self selector:@selector(handleDecelerateTick) userInfo:nil repeats:YES];
+    _decelerationTimer = [[NSTimer alloc] initWithFireDate:[NSDate date] interval:kAnimationInterval target:self selector:@selector(handleDecelerateTick) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:_decelerationTimer forMode:NSRunLoopCommonModes];
 }
 
 - (void)endDeceleration
@@ -569,9 +597,10 @@
         if (fabsf(distance) < fabsf(closestDistance)) {
             closestDistance = distance;
             indexOfNearestRow = i;
-            _targetYOffset = _currentOffset - closestDistance;
         }
     }
+    
+    _targetYOffset = _currentOffset - closestDistance;
     
     // determine the current index of the selected slice
     NSUInteger newIndex = _indexOfFirstRow + indexOfNearestRow;
@@ -608,12 +637,15 @@
         _nearestRowDelta = delta2;
     }
     
+//    NSLog(@"nearest row delta: %.2f, target y offset: %.2f, currentIndex: %i", _nearestRowDelta, _targetYOffset, _currentIndex);
+    
     _nearestRowStartValue = _currentOffset;
     _nearestRowStartTime = [NSDate date];
     _nearestRowDuration = [[_nearestRowStartTime dateByAddingTimeInterval:.666f] timeIntervalSinceDate:_nearestRowStartTime];
     
     [_moveToNearestRowTimer invalidate];
-    _moveToNearestRowTimer = [NSTimer scheduledTimerWithTimeInterval:kAnimationInterval target:self selector:@selector(handleMoveToNearestRowTick) userInfo:nil repeats:YES];
+    _moveToNearestRowTimer = [[NSTimer alloc] initWithFireDate:[NSDate date] interval:kAnimationInterval target:self selector:@selector(handleMoveToNearestRowTick) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:_moveToNearestRowTimer forMode:NSRunLoopCommonModes];
 }
 
 
@@ -641,6 +673,40 @@
         [self scrollContentByValue:dy - _currentOffset];
     }
 }
+
+
+#pragma mark - Velocity Falloff
+
+// velocity falloff is used to decrease the velocity
+// between touchesMoved and touchesEnded events.
+// this tries to ensure that if a user is moving very slowly,
+// the velocity will be reduced to reflect that slow movement.
+// otherwise, you can get a jumpy acceleration that occurs
+// when you finish your touch
+
+- (void)startVelocityFalloffTimer
+{
+    [_velocityFalloffTimer invalidate];
+    _velocityFalloffTimer = [[NSTimer alloc] initWithFireDate:[NSDate date] interval:kAnimationInterval target:self selector:@selector(handleVelocityFalloffTick) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:_velocityFalloffTimer forMode:NSRunLoopCommonModes];
+}
+
+
+- (void)endVelocityFalloffTimer
+{
+    [_velocityFalloffTimer invalidate];
+    _velocityFalloffTimer = nil;
+}
+
+
+- (void)handleVelocityFalloffTick
+{
+    _velocity *= kVelocityFalloffFactor;
+    if (fabsf(_velocity) < 1.f) {
+        _velocity = 0.f;
+    }
+}
+
 
 #pragma mark - Tap Selection
 
@@ -697,6 +763,7 @@
     // reset the last point to where we start from.
     _lastTouchPoint = point;
     _velocity = 0;
+    _isUserDragging = NO;
     
     [self endDeceleration];
     [self endScrollingToNearestRow];
@@ -706,23 +773,38 @@
 
 - (void)gestureView:(GDITouchProxyView *)gv touchMovedToPoint:(CGPoint)point
 {
+    _isUserDragging = YES;
     [self trackTouchPoint:point inView:gv];
+    [self startVelocityFalloffTimer];
 }
 
 
 - (void)gestureView:(GDITouchProxyView *)gv touchEndedAtPoint:(CGPoint)point
 {
-    if (fabsf(_velocity) < 1.f) {
-        // tap action
+    if (_isUserDragging) {
+        
+        [self endVelocityFalloffTimer];
+        
+        // if the velocity is low, go to the nearest row
+        if (fabsf(_velocity) < 1.f) {
+            _velocity = 0.f;
+            [self scrollToNearestRowWithAnimation:YES];
+        }
+        // otherwise, decelerate
+        else {
+            [self beginDeceleration];
+        }
+    }
+    
+    // if we aren't dragging, and we have no velocity, we must be tapping.
+    else if (fabsf(_velocity) < 1.f) {
+        
         _velocity = 0.f;
         [self selectRowAtPoint:point];
     }
-    else {
-        // drag action
-        [self beginDeceleration];
-    }
+    
+    _isUserDragging = NO;
 }
-
 
 /*
  static function easeIn (t:Number, b:Number, c:Number, d:Number):Number {
